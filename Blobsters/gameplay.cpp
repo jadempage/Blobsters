@@ -12,15 +12,13 @@
 void gamePlay::idleLoop()
 {
 	m_shouldContinue = true;
-	int16_t charWidth = 64;
-	int16_t charHeight = 64;
 	int screensizex = 320;
 	int screensizey = 240;
 	int16_t xPosMod = 200;
 	int16_t yPosMod = 180;
-	void* frameBuffer(int16_t f);
 	uint16_t transparent = 0xFFFF;
 	m5.Lcd.setSwapBytes(true);
+
 	for (int x = 0; x < 320; x = x + 16) {
 		for (int y = 175; y < 260; y = y + 16) {
 			m5.Lcd.pushImage(x, y, 16, 16, floor_tile);
@@ -42,12 +40,28 @@ void gamePlay::idleLoop()
 		m5.Lcd.pushImage(xPosMod, yPosMod, 64, 64, blue_front, transparent);
 		delay(2000);
 		refloor(xPosMod, yPosMod);
+		M5.update();
+		if (M5.BtnA.wasReleased()) {
+			M5.Lcd.print('A');
+			//stats
+		}
+		else if (M5.BtnB.wasReleased()) {
+			showMap();
+		}
 	}
 }
 
 template <typename T>
 bool IsInBounds(const T& value, const T& low, const T& high) {
 	return !(value < low) && !(high < value);
+}
+
+void gamePlay::showMap() {
+	m5.Lcd.drawPngFile(SD, "/bg/menu.png", 0, 0);
+	if (M5.BtnC.wasReleased()) {
+		idleLoop();
+	}
+
 }
 
 void gamePlay::refloor(int xPosMod, int yPosMod) {

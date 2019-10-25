@@ -17,6 +17,7 @@ class gamePlay {
 public:
 	bool m_shouldContinue = true;
 	void idleLoop();
+	void showMap();
 	void refloor(int xPosMod, int yPosMod);
 
 };
