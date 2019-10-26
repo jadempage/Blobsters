@@ -10,7 +10,6 @@ EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Libraries\M5Stack\0.2.9\M5Stack\M5Stack-0.2.9.vcxitems*{55793264-ed0f-4489-b8d5-cfd4e7e11b3e}*SharedItemsImports = 9
-		Libraries\M5Stack\0.2.9\M5Stack\M5Stack-0.2.9.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86

@@ -16,9 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Blobsters.ino" />
-    <None Include="src\arduino folders read me.txt">
-      <Filter>Misc Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.Blobsters.vsarduino.h">
@@ -27,9 +24,18 @@
     <ClInclude Include="gameplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Sprites.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gameplay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sprites.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sprites.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

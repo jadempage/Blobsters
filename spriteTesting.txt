@@ -1,0 +1,79 @@
+void spriteTest() {
+ 	testClass newSpriteRenderer;
+	const unsigned short* testSprite = newSpriteRenderer.getCharSprite(0);
+	const unsigned short* testSprite2 = newSpriteRenderer.getCharSprite(1);
+	while (true) {
+		for (int x = 0; x < 320; x = x + 16) {
+			for (int y = 175; y < 260; y = y + 16) {
+				m5.Lcd.pushImage(x, y, 16, 16, testSprite);
+			}
+		}
+		m5.Lcd.clear(BLACK);
+		delay(2000);
+	for (int x = 0; x < 320; x = x + 16) {
+		for (int y = 175; y < 260; y = y + 16) {
+			m5.Lcd.pushImage(x, y, 16, 16, testSprite2);
+		}
+	}
+	m5.Lcd.clear(BLACK);
+	delay(2000);
+
+
+	}
+}
+
+class testClass {
+public: 
+	const unsigned short* getCharSprite(int col);
+};
+
+
+#include "sprites.h"
+
+const unsigned short * testClass::getCharSprite(int col) {
+
+	int C0 = 0xFFFF;
+	int C1 = 0xFFFF;
+	int C2 = 0xFFFF;
+	int C3 = 0xFFFF;
+	int C4 = 0xFFFF;
+	int C5 = 0xFFFF;
+
+	if (col == 1) {
+		C1 = 0xCD0A;
+		C2 = 0xAC08;
+		C3 = 0x7A23;
+		C4 = 0x8AC5;
+		C5 = 0x39EE;
+	}
+	if (col == 2) {
+		C1 = 0xFFFF;
+		C2 = 0x7A23;
+		C3 = 0xAC08;
+		C4 = 0x39EE;
+		C5 = 0x9EDD;
+	}
+
+	const unsigned short test_sprite[256] = {
+	C1, C1, C2, C2, C1, C1, C2, C2, C1, C1, C2, C3, C1, C1, C2, C2,   // 0x0010 (16) pixels
+	C2, C2, C2, C4, C2, C2, C2, C2, C2, C2, C2, C3, C2, C2, C2, C2,   // 0x0020 (32) pixels
+	C2, C2, C2, C2, C2, C2, C2, C2, C2, C2, C2, C3, C2, C2, C2, C2,   // 0x0030 (48) pixels
+	C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3,   // 0x0040 (64) pixels
+	C2, C2, C1, C1, C2, C3, C1, C1, C2, C2, C1, C1, C2, C2, C1, C1,   // 0x0050 (80) pixels
+	C2, C2, C2, C2, C2, C3, C2, C2, C2, C2, C2, C2, C4, C2, C2, C2,   // 0x0060 (96) pixels
+	C2, C2, C2, C2, C2, C3, C2, C2, C2, C2, C2, C2, C2, C2, C2, C2,   // 0x0070 (112) pixels
+	C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3,   // 0x0080 (128) pixels
+	C1, C2, C2, C1, C1, C2, C2, C1, C1, C2, C2, C3, C1, C1, C2, C1,   // 0x0090 (144) pixels
+	C2, C2, C4, C2, C2, C2, C2, C2, C2, C2, C2, C3, C2, C2, C2, C2,   // 0x00A0 (160) pixels
+	C2, C2, C2, C2, C2, C2, C2, C2, C2, C2, C2, C3, C2, C2, C2, C2,   // 0x00B0 (176) pixels
+	C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3,   // 0x00C0 (192) pixels
+	C2, C2, C1, C1, C2, C3, C1, C1, C2, C2, C1, C1, C2, C2, C1, C1,   // 0x00D0 (208) pixels
+	C2, C2, C2, C2, C2, C3, C2, C2, C4, C2, C2, C2, C2, C2, C2, C2,   // 0x00E0 (224) pixels
+	C2, C2, C2, C2, C2, C3, C2, C2, C2, C2, C2, C2, C2, C2, C2, C2,   // 0x00F0 (240) pixels
+	C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3, C3,   // 0x0100 (256) pixels
+	};
+
+
+
+	return  test_sprite;
+}

@@ -8,7 +8,6 @@
 #define ZERO 1e-10
 #define isBetween(A, B, C) ( ((A-B) > - ZERO) && ((A-C) < ZERO) )
 
-
 void gamePlay::idleLoop()
 {
 	m_shouldContinue = true;
@@ -38,15 +37,16 @@ void gamePlay::idleLoop()
 			}
 		}
 		m5.Lcd.pushImage(xPosMod, yPosMod, 64, 64, blue_front, transparent);
-		delay(2000);
-		refloor(xPosMod, yPosMod);
+		delay(1000);
+		refloor(0, 176, 320, 260, xPosMod, yPosMod, floor_tile, 64, 64);
 		M5.update();
-		if (M5.BtnA.wasReleased()) {
-			M5.Lcd.print('A');
+		if (btnAPress == true) {
 			//stats
+			btnAPress = false; 
 		}
-		else if (M5.BtnB.wasReleased()) {
-			showMap();
+		if (btnBPress == true) {
+			btnBPress = false; 
+			showMap(); 
 		}
 	}
 }
@@ -57,23 +57,59 @@ bool IsInBounds(const T& value, const T& low, const T& high) {
 }
 
 void gamePlay::showMap() {
-	m5.Lcd.drawPngFile(SD, "/bg/menu.png", 0, 0);
-	if (M5.BtnC.wasReleased()) {
-		idleLoop();
-	}
-
-}
-
-void gamePlay::refloor(int xPosMod, int yPosMod) {
-	for (int x = 0; x < 320; x = x + 16) {
-		for (int y = 175; y < 260; y = y + 16) {
-			if (IsInBounds(x, xPosMod - 64, xPosMod + 64)) { // Is 5 Between 0 and 10
-				m5.Lcd.pushImage(x, y, 16, 16, floor_tile);
+int curPos = 0;
+   int textX = 16;
+   int textY = 192;
+   M5.Lcd.setTextColor(BLACK);
+   M5.Lcd.setTextSize(4);
+   m5.Lcd.drawPngFile(SD, "/bg/menu.png", 0, 0);
+   M5.Lcd.drawString(mapLocationNames[0], textX , textY);
+	while (!btnCPress) {
+		M5.update();
+		if (btnAPress == true) {
+			delay(2000);
+			refloor(12, 192, 112, 224, textX, textY, map_box_tile, 160, 32);
+			curPos = curPos + 1;
+			if (curPos > 2) {
+				curPos = 0;
 			}
-			if (IsInBounds(y, yPosMod - 60, yPosMod + 60)) { // Is 5 Between 0 and 10
-				m5.Lcd.pushImage(x, y, 16, 16, floor_tile);
+			btnAPress = false;
+			M5.Lcd.drawString(mapLocationNames[curPos], textX, textY);
+		}
+	}
+	if (btnCPress == true) {
+		btnCPress = false;
+		idleLoop(); 
+	}
+}
+//Params: x/yMin = minimum x/y, x/yMax = max x/y Pos, tile = tile sprite, x/ypos mod = x/y of where sprite is, x/yMod = how big the thing to cover is 
+void gamePlay::refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod) {
+	for (int x = xMin; x < xMax; x = x + 16) {
+		for (int y = yMin; y < yMax; y = y + 16) {
+			if (IsInBounds(x, xPosMod - xMod, xPosMod + xMod)) { // Does this X pos need updating
+				m5.Lcd.pushImage(x, y, 16, 16, tile);
+			}
+			if (IsInBounds(y, yPosMod - yMod, yPosMod + yMod)) { // Does this Y pos need updating 
+				m5.Lcd.pushImage(x, y, 16, 16, tile);
 			}
 
 		}
 	}
+}
+
+
+
+void gamePlay::interruptAbtn()
+{
+	btnAPress = true;
+}
+
+void gamePlay::interruptBbtn()
+{
+	btnBPress = true; 
+}
+
+void gamePlay::interruptCbtn()
+{
+	btnCPress = true; 
 }
