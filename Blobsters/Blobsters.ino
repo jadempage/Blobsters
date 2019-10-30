@@ -30,15 +30,24 @@ void IRAM_ATTR isrc() {
 	//m5.Lcd.print("C INTERRUPT ");
 }
 
+void IRAM_ATTR onTimer() {
+	theGame.interruptTimer(); 
+}
+
 
 void setup() { 
 	m5.begin();
+	hw_timer_t* timer = NULL;
 	attachInterrupt(37, isrc, FALLING);
 	attachInterrupt(38, isrb, FALLING);
 	attachInterrupt(39, isra, FALLING);
 	if (!SD.begin()) {
 		M5.Lcd.println("Card failed, or not present");
 	}
+	/* 1 tick take 1/(80MHZ/80) = 1us so we set divider 80 and count up */
+	timer = timerBegin(0, 240, true);
+	timerAttachInterrupt(timer, &onTimer, true);
+	timerAlarmWrite(timer, 7200000000, true);
 }
 
 // the loop function runs over and over again until power down or reset

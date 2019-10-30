@@ -10,6 +10,10 @@
 
 void gamePlay::idleLoop()
 {
+	cChar.colour = "Blue";
+	cChar.name = "Thingy";
+	cChar.fullness = 10;
+	cChar.happiness = 10; 
 	m_shouldContinue = true;
 	int screensizex = 320;
 	int screensizey = 240;
@@ -56,6 +60,21 @@ bool IsInBounds(const T& value, const T& low, const T& high) {
 	return !(value < low) && !(high < value);
 }
 
+void gamePlay::showStats() {
+	CString str;
+	str.Format("%d", cChar.fullness);
+	m5.Lcd.drawPngFile(SD, "/bg/summ.png", 0, 0);
+	m5.Lcd.drawString(cChar.name, 90, 25); 
+	m5.Lcd.drawString(str, 85, 120); 
+	while (!btnCPress) {
+		M5.update();
+	}
+	if (btnCPress == true) {
+		btnCPress = false;
+		idleLoop();
+	}
+}
+
 void gamePlay::showMap() {
 int curPos = 0;
    int textX = 16;
@@ -97,7 +116,10 @@ void gamePlay::refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int 
 	}
 }
 
-
+void gamePlay::interruptTimer()
+{
+	cChar.fullness = cChar.fullness - 1; 
+}
 
 void gamePlay::interruptAbtn()
 {
