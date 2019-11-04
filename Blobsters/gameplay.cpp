@@ -5,6 +5,7 @@
 #include "gameplay.h"
 #include "sprites.h"
 
+
 #define ZERO 1e-10
 #define isBetween(A, B, C) ( ((A-B) > - ZERO) && ((A-C) < ZERO) )
 
@@ -63,6 +64,36 @@ bool IsInBounds(const T& value, const T& low, const T& high) {
 	return !(value < low) && !(high < value);
 }
 
+void gamePlay::showShop() {
+	int curSlot = 1; 
+	m5.Lcd.drawPngFile(SD, "/bg/Shop.png", 0, 0);
+	m5.Lcd.setTextSize(3);
+	M5.Lcd.setTextColor(TFT_BLACK, TFT_WHITE);
+	int curX = 88;
+	int curY = 23; 
+	food curFoods;
+	curFoods.genFoods(3);
+	for (int i = 0; i < 3; i++) {
+		const char* filePath = curFoods.foodList[i]->filepath;
+		m5.Lcd.drawPngFile(SD, filePath, curX, curY); 
+		curX = curX + 52;
+	}
+	while (!btnCPress) {
+		M5.update();
+		m5.Lcd.drawString(curFoods.foodList[curSlot]->name, 115, 160);
+		m5.Lcd.drawString(curFoods.foodList[curSlot]->price, 150, 200);
+		if (btnAPress == true) {
+			btnAPress = false;
+			curSlot = curSlot + 1;
+		}
+	}
+	if (btnCPress == true) {
+		btnCPress = false;
+		showMap();
+	}
+}
+
+
 void gamePlay::showStats() {
 	m5.Lcd.drawPngFile(SD, "/bg/summ.png", 0, 0);
 	char str[2];
@@ -83,9 +114,7 @@ void gamePlay::showStats() {
 	M5.Lcd.setTextColor(TFT_BLACK, TFT_WHITE);
 	m5.Lcd.drawString(cChar.name, 90, 25); 
 	//m5.Lcd.drawString(str, 85, 120); 
-	while (!btnCPress) {
-		M5.update();
-	}
+	M5.update();
 	if (btnCPress == true) {
 		btnCPress = false;
 		idleLoop();
@@ -111,6 +140,17 @@ int curPos = 0;
 			}
 			btnAPress = false;
 			M5.Lcd.drawString(mapLocationNames[curPos], textX, textY);
+		}
+		if (btnBPress == true) {
+			if (mapLocationNames[curPos] == "shop") {
+				showShop(); 
+			}
+			else if (mapLocationNames[curPos] == "work") {
+				//Do the work
+			}
+			else if (mapLocationNames[curPos] == "meet") {
+				//Do the meet
+			}
 		}
 	}
 	if (btnCPress == true) {

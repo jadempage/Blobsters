@@ -8,6 +8,7 @@
 // the setup function runs once when you press reset or power the board
 
 #ifndef bool
+
 #include "gameplay.h"
 #include "sprites.h"
 #define bool        int8_t
