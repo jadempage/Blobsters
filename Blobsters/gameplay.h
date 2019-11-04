@@ -1,6 +1,5 @@
 // gameplay.h
 #include <M5Stack.h>
-#include <atlstr.h>
 #ifndef _GAMEPLAY_h
 #define _GAMEPLAY_h
 
@@ -31,8 +30,8 @@ public:
 	void interruptCbtn(); 
 
 	struct curChar {
-		CString name; 
-		CString colour;
+		char name[20]; 
+		char colour[20];
 		int happiness;
 		int fullness;
 	};

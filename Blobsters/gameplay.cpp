@@ -10,8 +10,8 @@
 
 void gamePlay::idleLoop()
 {
-	cChar.colour = "Blue";
-	cChar.name = "Thingy";
+	strcpy(cChar.colour, "Blue");
+	strcpy(cChar.name, "Thingy");
 	cChar.fullness = 10;
 	cChar.happiness = 10; 
 	m_shouldContinue = true;
@@ -45,12 +45,15 @@ void gamePlay::idleLoop()
 		refloor(0, 176, 320, 260, xPosMod, yPosMod, floor_tile, 64, 64);
 		M5.update();
 		if (btnAPress == true) {
-			//stats
+			showStats();
 			btnAPress = false; 
 		}
 		if (btnBPress == true) {
 			btnBPress = false; 
 			showMap(); 
+		}
+		if (btnCPress == true) {
+			btnCPress = false;
 		}
 	}
 }
@@ -61,11 +64,25 @@ bool IsInBounds(const T& value, const T& low, const T& high) {
 }
 
 void gamePlay::showStats() {
-	CString str;
-	str.Format("%d", cChar.fullness);
 	m5.Lcd.drawPngFile(SD, "/bg/summ.png", 0, 0);
+	char str[2];
+	int x = 85;
+	int y = 120;
+	for (int i = 0; i < cChar.fullness; i++) {
+		m5.Lcd.fillRect(x, y, 16, 16, RED);
+		x = x + 16; 
+	}
+	x = 85;
+	y = 100;
+	for (int i = 0; i < cChar.happiness; i++) {
+		m5.Lcd.fillRect(x, y, 16, 16, RED);
+		x = x + 16;
+	}
+	/*itoa((cChar.fullness), str, 10);*/
+	m5.Lcd.setTextSize(6);
+	M5.Lcd.setTextColor(TFT_BLACK, TFT_WHITE);
 	m5.Lcd.drawString(cChar.name, 90, 25); 
-	m5.Lcd.drawString(str, 85, 120); 
+	//m5.Lcd.drawString(str, 85, 120); 
 	while (!btnCPress) {
 		M5.update();
 	}
