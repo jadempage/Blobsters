@@ -1,4 +1,5 @@
 // food.h
+#pragma once
 
 #ifndef _FOOD_h
 #define _FOOD_h

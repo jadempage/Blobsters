@@ -46,8 +46,8 @@ void gamePlay::idleLoop()
 		refloor(0, 176, 320, 260, xPosMod, yPosMod, floor_tile, 64, 64);
 		M5.update();
 		if (btnAPress == true) {
+      btnAPress = false; 
 			showStats();
-			btnAPress = false; 
 		}
 		if (btnBPress == true) {
 			btnBPress = false; 
@@ -72,16 +72,20 @@ void gamePlay::showShop() {
 	int curX = 88;
 	int curY = 23; 
 	food curFoods;
+	char * priceString;
 	curFoods.genFoods(3);
 	for (int i = 0; i < 3; i++) {
 		const char* filePath = curFoods.foodList[i]->filepath;
 		m5.Lcd.drawPngFile(SD, filePath, curX, curY); 
 		curX = curX + 52;
 	}
+    m5.Lcd.drawString(curFoods.foodList[curSlot]->name, 115, 160);
+    itoa(curFoods.foodList[curSlot]->price, priceString, 10);
 	while (!btnCPress) {
 		M5.update();
 		m5.Lcd.drawString(curFoods.foodList[curSlot]->name, 115, 160);
-		m5.Lcd.drawString(curFoods.foodList[curSlot]->price, 150, 200);
+		itoa(curFoods.foodList[curSlot]->price, priceString, 10);
+		m5.Lcd.drawString(priceString, 150, 200);
 		if (btnAPress == true) {
 			btnAPress = false;
 			curSlot = curSlot + 1;
@@ -97,16 +101,16 @@ void gamePlay::showShop() {
 void gamePlay::showStats() {
 	m5.Lcd.drawPngFile(SD, "/bg/summ.png", 0, 0);
 	char str[2];
-	int x = 85;
-	int y = 120;
+	int x = 82;
+	int y = 115;
 	for (int i = 0; i < cChar.fullness; i++) {
-		m5.Lcd.fillRect(x, y, 16, 16, RED);
+		m5.Lcd.fillRect(x, y, 16, 12, RED);
 		x = x + 16; 
 	}
-	x = 85;
-	y = 100;
+	x = 82;
+	y = 80;
 	for (int i = 0; i < cChar.happiness; i++) {
-		m5.Lcd.fillRect(x, y, 16, 16, RED);
+		m5.Lcd.fillRect(x, y, 16, 12, RED);
 		x = x + 16;
 	}
 	/*itoa((cChar.fullness), str, 10);*/
@@ -114,7 +118,9 @@ void gamePlay::showStats() {
 	M5.Lcd.setTextColor(TFT_BLACK, TFT_WHITE);
 	m5.Lcd.drawString(cChar.name, 90, 25); 
 	//m5.Lcd.drawString(str, 85, 120); 
-	M5.update();
+	while (!btnCPress) {
+		M5.update();
+	}
 	if (btnCPress == true) {
 		btnCPress = false;
 		idleLoop();
@@ -142,13 +148,13 @@ int curPos = 0;
 			M5.Lcd.drawString(mapLocationNames[curPos], textX, textY);
 		}
 		if (btnBPress == true) {
-			if (mapLocationNames[curPos] == "shop") {
+			if (mapLocationNames[curPos] == "Shop") {
 				showShop(); 
 			}
-			else if (mapLocationNames[curPos] == "work") {
+			else if (mapLocationNames[curPos] == "Work") {
 				//Do the work
 			}
-			else if (mapLocationNames[curPos] == "meet") {
+			else if (mapLocationNames[curPos] == "Meet") {
 				//Do the meet
 			}
 		}

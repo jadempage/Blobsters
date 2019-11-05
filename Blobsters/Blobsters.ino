@@ -9,6 +9,7 @@
 
 #ifndef bool
 
+
 #include "gameplay.h"
 #include "sprites.h"
 #define bool        int8_t
