@@ -10,6 +10,9 @@
 #ifndef bool
 
 
+#include <M5Stack.h>
+#include <ArduinoJson.hpp>
+#include <ArduinoJson.h>
 #include "gameplay.h"
 #include "sprites.h"
 #define bool        int8_t
@@ -18,7 +21,7 @@
 gamePlay theGame;
 
 void IRAM_ATTR isra() {
-	theGame.interruptAbtn(); 
+	theGame.interruptAbtn();
 	//m5.Lcd.print("A INTERRUPT ");
 }
 
@@ -33,11 +36,11 @@ void IRAM_ATTR isrc() {
 }
 
 void IRAM_ATTR onTimer() {
-	theGame.interruptTimer(); 
+	theGame.interruptTimer();
 }
 
 
-void setup() { 
+void setup() {
 	m5.begin();
 	hw_timer_t* timer = NULL;
 	attachInterrupt(37, isrc, FALLING);
