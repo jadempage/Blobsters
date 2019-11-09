@@ -1,18 +1,20 @@
 // gameplay.h
-#include <M5Stack.h>
+#pragma once
+
 #ifndef _GAMEPLAY_h
 #define _GAMEPLAY_h
-// #include <ArduinoJson.hpp>
-#include <ArduinoJson.h>
-#include "food.h"
-#include "SDUtil.h"
-
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
 #else
 	#include "WProgram.h"
 #endif
 #endif
+
+#include <M5Stack.h>
+#include <Vector.h>
+#include <ArduinoTrace.h>
+#include "food.h"
+
 
 class gamePlay {
 public:

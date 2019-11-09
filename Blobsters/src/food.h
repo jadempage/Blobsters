@@ -13,8 +13,10 @@
 
 #endif
 
+#include "gameplay.h"
+
 struct foodItem {
-	const char* name; 
+	const char* foodName; 
 	const char* description;
 	int fill;
 	bool healthy;
@@ -24,7 +26,8 @@ struct foodItem {
 
 class food {
 public:
-	foodItem* foodList[10];
-	void genFoods(int amount);
+	/*foodItem* foodList[10];*/
+	Vector<foodItem> foodVList;
+	foodItem genFoods();
 }
 ;

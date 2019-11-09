@@ -8,7 +8,6 @@
 
 #define ZERO 1e-10
 #define isBetween(A, B, C) ( ((A-B) > - ZERO) && ((A-C) < ZERO) )
-SDUtils SDHandler;
 
 void gamePlay::idleLoop()
 {
@@ -47,7 +46,7 @@ void gamePlay::idleLoop()
 		refloor(0, 176, 320, 260, xPosMod, yPosMod, floor_tile, 64, 64);
 		M5.update();
 		if (btnAPress == true) {
-      btnAPress = false; 
+			btnAPress = false; 
 			showStats();
 		}
 		if (btnBPress == true) {
@@ -67,29 +66,45 @@ bool IsInBounds(const T& value, const T& low, const T& high) {
 
 void gamePlay::showShop() {
 	int curSlot = 1; 
+	Vector<foodItem> foodList; 
 	m5.Lcd.drawPngFile(SD, "/bg/Shop.png", 0, 0);
 	m5.Lcd.setTextSize(3);
 	M5.Lcd.setTextColor(TFT_BLACK, TFT_WHITE);
 	int curX = 88;
 	int curY = 23; 
 	food curFoods;
+  foodItem foodListC[3];
+	foodItem thisFoodItem;
 	char * priceString;
-	curFoods.genFoods(3);
+    Serial.write("Requesting 3 food items");
 	for (int i = 0; i < 3; i++) {
-		const char* filePath = curFoods.foodList[i]->filepath;
-		m5.Lcd.drawPngFile(SD, filePath, curX, curY); 
+		thisFoodItem = curFoods.genFoods();
+		//foodList.push_back(thisFoodItem);
+   foodListC[i] = thisFoodItem; 
+   Serial.write("Recieved food item to gpcpp \n");
+	}
+	for (int i = 0; i < 3; i++) {
+    DUMP(foodListC[i].foodName);
+		const char* filePath = foodListC[i].filepath;
+    Serial.write("Got filepath \n"); 
+    DUMP(filePath);
+		m5.Lcd.pushImage(curX, curY, 16, 16, floor_tile);
 		curX = curX + 52;
 	}
-    m5.Lcd.drawString(curFoods.foodList[curSlot]->name, 115, 160);
-    itoa(curFoods.foodList[curSlot]->price, priceString, 10);
+    //m5.Lcd.drawString(foodListC[0].foodName, 115, 160);
+    //itoa(foodListC[0].price, priceString, 10);
 	while (!btnCPress) {
 		M5.update();
-		m5.Lcd.drawString(curFoods.foodList[curSlot]->name, 115, 160);
-		itoa(curFoods.foodList[curSlot]->price, priceString, 10);
-		m5.Lcd.drawString(priceString, 150, 200);
+		m5.Lcd.drawString(foodListC[curSlot].foodName, 115, 160);
+		m5.Lcd.drawString("200", 150, 200);
 		if (btnAPress == true) {
 			btnAPress = false;
-			curSlot = curSlot + 1;
+      if (curSlot == 2){
+        curSlot = 0; 
+      }
+      else{
+        curSlot = curSlot + 1;
+      }
 		}
 	}
 	if (btnCPress == true) {

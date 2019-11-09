@@ -10,9 +10,8 @@
 #ifndef bool
 
 
+
 #include <M5Stack.h>
-#include <ArduinoJson.hpp>
-#include <ArduinoJson.h>
 #include "gameplay.h"
 #include "sprites.h"
 #define bool        int8_t
@@ -42,6 +41,7 @@ void IRAM_ATTR onTimer() {
 
 void setup() {
 	m5.begin();
+	Serial.begin(9600);
 	hw_timer_t* timer = NULL;
 	attachInterrupt(37, isrc, FALLING);
 	attachInterrupt(38, isrb, FALLING);
@@ -59,5 +59,3 @@ void setup() {
 void loop() {
 	theGame.idleLoop();
 }
-
-
