@@ -29,5 +29,6 @@ public:
 	/*foodItem* foodList[10];*/
 	Vector<foodItem> foodVList;
 	foodItem genFoods();
+	foodItem giveOOS();
 }
 ;

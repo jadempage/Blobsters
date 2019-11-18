@@ -9,8 +9,7 @@
 
 #ifndef bool
 
-
-
+#include <Vector.h>
 #include <M5Stack.h>
 #include "gameplay.h"
 #include "sprites.h"
@@ -18,6 +17,7 @@
 #endif
 
 gamePlay theGame;
+
 
 void IRAM_ATTR isra() {
 	theGame.interruptAbtn();
@@ -57,5 +57,7 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
+	theGame.setup(); 
+	theGame.genShopItems(); 
 	theGame.idleLoop();
 }
