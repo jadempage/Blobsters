@@ -18,17 +18,18 @@
 #include "Inventory.h"
 #define FOOD_QTY 6
 
+struct Inventory; 
+
 class gamePlay {
 public:
 
 	bool m_shouldContinue = true;
-	void setup();
-	void idleLoop();
+	void idleLoop(Inventory* curInventory);
 	void genShopItems();
-	void showShop();
-	void showStats();
-	void showMap();
-	void showInventory();
+	void showShop(Inventory* curInventory);
+	void showStats(Inventory* curInventory);
+	void showMap(Inventory* curInventory);
+	void showInventory(Inventory* curInventory);
 	void clearButtons();
 	void refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod);
 	void interruptTimer();

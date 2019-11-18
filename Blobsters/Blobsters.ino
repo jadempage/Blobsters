@@ -57,7 +57,12 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	theGame.setup(); 
+	Inventory* curInventory = new Inventory;
+	curInventory->currentMoney = 0;
+	curInventory->foodIList = {};
+	curInventory->itemIList = {};
+	curInventory->numOfFoods = 0;
+	curInventory->numOfOthers = 0;  
 	theGame.genShopItems(); 
-	theGame.idleLoop();
+	theGame.idleLoop(curInventory);
 }
