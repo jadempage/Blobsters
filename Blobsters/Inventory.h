@@ -6,7 +6,8 @@ struct itemStruct;
 
 
 struct Inventory {
-	Vector<foodItem> foodIList;
+	foodItem* foodIList;
+	//Vector<foodItem> foodIList;
 	Vector<itemStruct> itemIList; 
 	int numOfFoods;
 	int numOfOthers;

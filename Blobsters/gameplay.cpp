@@ -61,6 +61,7 @@ void gamePlay::idleLoop(Inventory* curInventory)
 		}
 		if (btnCPress == true) {
 			clearButtons();
+			showInventory(curInventory); 
 		}
 	}
 }
@@ -83,14 +84,13 @@ void gamePlay::showShop(Inventory* curInventory) {
 	food curFoods;
 	int curSlot = 0; 
 	bool updateStock = false; 
-	Vector<foodItem> foodList; 
 	m5.Lcd.drawPngFile(SD, "/bg/Shop.png", 0, 0);
 	m5.Lcd.setTextSize(2);
 	M5.Lcd.setTextColor(TFT_BLACK, 0x92A7);
 	int curX = 98;
 	int curY = 28; 
 	
-	char priceString[33];
+	char priceString[4];
 	for (int i = 0; i < FOOD_QTY; i++) {
 		const char* filePath = foodListC[i].filepath;
 		if (strcmp(filePath, "/food/OOS.png") == 0) {
@@ -126,7 +126,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 				int curX = 98;
 				int curY = 28; 
 				foodItem toAdd = foodListC[curSlot];
-				curInventory->foodIList.push_back(toAdd);
+				curInventory->foodIList[curInventory->numOfFoods + 1] = toAdd; 
 				curInventory->numOfFoods = curInventory->numOfFoods + 1;
 				DUMP(curInventory->numOfFoods);
 				foodListC[curSlot] = curFoods.giveOOS();
@@ -184,9 +184,7 @@ void gamePlay::showStats(Inventory* curInventory) {
 			clearButtons();
 		}
 		if (btnBPress == true) {
-			Serial.write("Button B Pressed");
 			clearButtons();
-			showInventory(curInventory);
 		}
 	}
 	if (btnCPress == true) {
@@ -237,40 +235,113 @@ int curPos = 0;
 
 void gamePlay::showInventory(Inventory* curInventory)
 {
-	//@TO DO: Add handler for when so many items they won't fit on the screen
-	Serial.write("In inventory... "); 
-	int curX = 10;
-	int curY = 50;
-	m5.Lcd.clear(WHITE);
+	//@TO DO: actually add error to shop when fridge full 
+	int textX = 137;
+	int textY = 41;
+	int curPos = 0; 
+	M5.Lcd.setTextColor(BLACK);
+	M5.Lcd.setTextSize(4);
 	m5.Lcd.drawPngFile(SD, "/bg/inv.png", 0, 0);
-	int itemsSize = curInventory->numOfFoods;
-	 DUMP(itemsSize);
-	 Serial.write("\n");
-	if (itemsSize < 1) {
-		m5.Lcd.drawString("Empty :( ", curX, curY);
-	}
-	else {
-		for (int i = 0; i < itemsSize - 1; i++) {
-			Serial.write("Cycling: ");
-			DUMP(i); 
-			foodItem testItem = curInventory->foodIList.at(i);
-			Serial.write("GOT TEST ITEM");
-			DUMP(testItem.foodName); 
-			const char* filePath = testItem.filepath;
-			Serial.write("GOT FILE PATH: \n");
-			DUMP(filePath); 
-			m5.Lcd.drawPngFile(SD, filePath, curX, 10, 96, 96);
-			m5.Lcd.drawString(curInventory->foodIList[i].foodName, curX, curY);
-			curX = curX + 20;
-		}
-	}
+	M5.Lcd.drawString(invLocationNames[0], textX, textY);
 	while (!btnCPress) {
-		m5.update();
+		M5.update();
+		if (btnAPress == true) {
+			clearButtons();
+			delay(2000);
+			refloor(12, 192, 112, 224, textX, textY, inv_box_tile, 160, 32);
+			curPos = curPos + 1;
+			if (curPos > 1) {
+				curPos = 0;
+			}
+			M5.Lcd.drawString(invLocationNames[curPos], textX, textY);
+		}
+		if (btnBPress == true) {
+			clearButtons();
+			if (strcmp(invLocationNames[curPos], "Food") == 0) {
+				clearButtons();
+				showFridge(curInventory);
+			}
+			else if (strcmp(invLocationNames[curPos], "Items") == 0) {
+				clearButtons();
+				//Show other
+			}
+		}
 	}
 	if (btnCPress == true) {
 		clearButtons();
-		return; 
+		return;
 	}
+}
+
+void gamePlay::showFridge(Inventory* curInventory) {
+	int itemSize = curInventory->numOfFoods;
+
+	int curX = 43;
+	int curY = 25;
+	char fillString[3];
+	int fridgePage = 0;
+	int foodSlot = 0;
+	for (foodSlot; foodSlot < FRIDGE_QTY * fridgePage; foodSlot++) {
+		const char* filePath = curInventory->foodIList[foodSlot].filepath;
+		m5.Lcd.drawPngFile(SD, filePath, curX, curY, 40, 40);
+		curX = curX + 52;
+		if (foodSlot == 4) {
+			curY = curY + 48;
+			curX = 98;
+		}
+	}
+	while (!btnCPress) {
+		M5.update();
+		m5.Lcd.drawString(curInventory->foodIList[foodSlot].foodName, 80, 165);
+		itoa(curInventory->foodIList[foodSlot].fill, fillString, 10);
+		m5.Lcd.drawString(fillString, 150, 195);
+		if (btnAPress == true) {
+			clearButtons();
+			m5.Lcd.drawString("--", 150, 195);
+			if (foodSlot == FOOD_QTY - 1) {
+				foodSlot = 0;
+			}
+			else {
+				foodSlot = foodSlot + 1;
+			}
+		}
+		if (btnBPress == true) {
+			clearButtons();
+			//Eat the item
+
+		}
+	}
+	if (btnCPress == true) {
+		clearButtons();
+		return;
+	}
+
+
+
+
+
+	/*move to fridge*/
+//int itemsSize = curInventory->numOfFoods;
+// DUMP(itemsSize);
+// Serial.write("\n");
+//if (itemsSize < 1) {
+//	m5.Lcd.drawString("Empty :( ", curX, curY);
+//}
+//else {
+//	for (int i = 0; i < itemsSize - 1; i++) {
+//		Serial.write("Cycling: ");
+//		DUMP(i); 
+//		foodItem testItem = curInventory->foodIList[i];
+//		Serial.write("GOT TEST ITEM");
+//		const char* filePath = curInventory->foodIList[i].filepath;
+//		Serial.write("GOT FILE PATH: \n");
+//		m5.Lcd.drawPngFile(SD, filePath, curX, 10, 96, 96);
+//		Serial.write("DREW PNG: \n"); 
+//		//m5.Lcd.drawString(curInventory->foodIList[i].foodName, curX, curY);
+//		Serial.write("DREW STR: \n");
+//		curX = curX + 20;
+//	}
+//}
 }
 
 void gamePlay::clearButtons() {

@@ -17,6 +17,8 @@
 #include "Item.h"
 #include "Inventory.h"
 #define FOOD_QTY 6
+#define FRIDGE_QTY 10
+#define FRIDGE_PAGES 3 
 
 struct Inventory; 
 
@@ -30,10 +32,12 @@ public:
 	void showStats(Inventory* curInventory);
 	void showMap(Inventory* curInventory);
 	void showInventory(Inventory* curInventory);
+	void showFridge(Inventory* curInventory);
 	void clearButtons();
 	void refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod);
 	void interruptTimer();
 	char* mapLocationNames[3] = { "Shop", "Work", "Meet" };
+	char* invLocationNames[2] = { "Items", "Food" };
 	bool btnAPress;
 	bool btnBPress;
 	bool btnCPress;

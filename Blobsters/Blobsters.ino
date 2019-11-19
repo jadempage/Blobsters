@@ -63,6 +63,8 @@ void loop() {
 	curInventory->itemIList = {};
 	curInventory->numOfFoods = 0;
 	curInventory->numOfOthers = 0;  
+	foodItem foodIList[30];
+	curInventory->foodIList = foodIList;
 	theGame.genShopItems(); 
 	theGame.idleLoop(curInventory);
 }
