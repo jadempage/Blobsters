@@ -16,12 +16,12 @@
 #include "gameplay.h"
 
 struct foodItem {
-	const char* foodName; 
-	const char* description;
-	int fill;
-	bool healthy;
-	int price;
-	const char* filepath; 
+	char* foodName = " FOOD NAME "; 
+	char* description = " DESC "; 
+	int fill = 0;
+	bool healthy = false;
+	int price = 0;
+	char* filepath = " NULL ";
 };
 
 class food {

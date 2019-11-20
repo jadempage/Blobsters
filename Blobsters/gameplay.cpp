@@ -126,9 +126,9 @@ void gamePlay::showShop(Inventory* curInventory) {
 				int curX = 98;
 				int curY = 28; 
 				foodItem toAdd = foodListC[curSlot];
-				curInventory->foodIList[curInventory->numOfFoods + 1] = toAdd; 
+			//	curInventory->foodIList[curInventory->numOfFoods + 1] = toAdd; 
+				memcpy(&curInventory->foodIList[(curInventory->numOfFoods)], &toAdd, sizeof(toAdd)); 
 				curInventory->numOfFoods = curInventory->numOfFoods + 1;
-				DUMP(curInventory->numOfFoods);
 				foodListC[curSlot] = curFoods.giveOOS();
 				for (int i = 0; i < FOOD_QTY; i++) {
 					const char* filePath = foodListC[i].filepath;
@@ -192,7 +192,7 @@ void gamePlay::showStats(Inventory* curInventory) {
 		return;
 	}
 }
-
+ 
 void gamePlay::showMap(Inventory* curInventory) {
 int curPos = 0;
    int textX = 16;
@@ -240,15 +240,14 @@ void gamePlay::showInventory(Inventory* curInventory)
 	int textY = 41;
 	int curPos = 0; 
 	M5.Lcd.setTextColor(BLACK);
-	M5.Lcd.setTextSize(4);
-	m5.Lcd.drawPngFile(SD, "/bg/inv.png", 0, 0);
+	M5.Lcd.setTextSize(2);
+	m5.Lcd.drawPngFile(SD, "/bg/inv_choice.png", 0, 0);
 	M5.Lcd.drawString(invLocationNames[0], textX, textY);
 	while (!btnCPress) {
 		M5.update();
 		if (btnAPress == true) {
 			clearButtons();
-			delay(2000);
-			refloor(12, 192, 112, 224, textX, textY, inv_box_tile, 160, 32);
+			refloor(137, 41, 238, 71, textX, textY, inv_box_tile, 160, 32);
 			curPos = curPos + 1;
 			if (curPos > 1) {
 				curPos = 0;
@@ -275,24 +274,37 @@ void gamePlay::showInventory(Inventory* curInventory)
 
 void gamePlay::showFridge(Inventory* curInventory) {
 	int itemSize = curInventory->numOfFoods;
-
-	int curX = 43;
-	int curY = 25;
+	foodItem curFoodItem;
+	int curX = 143;
+	int curY = 115;
 	char fillString[3];
+	m5.Lcd.drawPngFile(SD, "/bg/Fridge.png", 0, 0);
 	int fridgePage = 0;
 	int foodSlot = 0;
 	for (foodSlot; foodSlot < FRIDGE_QTY * fridgePage; foodSlot++) {
-		const char* filePath = curInventory->foodIList[foodSlot].filepath;
+		curFoodItem = curInventory->foodIList[foodSlot];
+		DUMP(foodSlot); 
+		const char* filePath = curFoodItem.filepath;
+		DUMP(filePath);
 		m5.Lcd.drawPngFile(SD, filePath, curX, curY, 40, 40);
 		curX = curX + 52;
 		if (foodSlot == 4) {
 			curY = curY + 48;
 			curX = 98;
 		}
+		else {
+			foodSlot = foodSlot + 1; 
+		}
+		Serial.write("DONE DRAWING PNG?!?!");
 	}
 	while (!btnCPress) {
 		M5.update();
-		m5.Lcd.drawString(curInventory->foodIList[foodSlot].foodName, 80, 165);
+		curFoodItem = curInventory->foodIList[foodSlot];
+		DUMP(curFoodItem.foodName);
+		DUMP(curFoodItem.price);
+		DUMP(curFoodItem.fill);
+		DUMP(curFoodItem.filepath); 
+		m5.Lcd.drawString(curFoodItem.foodName, 80, 125);
 		itoa(curInventory->foodIList[foodSlot].fill, fillString, 10);
 		m5.Lcd.drawString(fillString, 150, 195);
 		if (btnAPress == true) {
