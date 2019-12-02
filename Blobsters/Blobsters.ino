@@ -9,6 +9,7 @@
 
 #ifndef bool
 
+
 #include <Vector.h>
 #include <M5Stack.h>
 #include "gameplay.h"
@@ -42,17 +43,23 @@ void IRAM_ATTR onTimer() {
 void setup() {
 	m5.begin();
 	Serial.begin(9600);
-	hw_timer_t* timer = NULL;
 	attachInterrupt(37, isrc, FALLING);
 	attachInterrupt(38, isrb, FALLING);
 	attachInterrupt(39, isra, FALLING);
 	if (!SD.begin()) {
 		M5.Lcd.println("Card failed, or not present");
 	}
+
+	hw_timer_t* theTimer = timerBegin(0, 80, true);
+	timerAttachInterrupt(theTimer, onTimer, true);
+	timerAlarmWrite(theTimer, 20000000, true);
+	timerAlarmEnable(theTimer);
+	//2000000 = 2 seconds, We want like an hour IG so 3600000000, 600000000 = 10 min for testing 
+
 	/* 1 tick take 1/(80MHZ/80) = 1us so we set divider 80 and count up */
-	timer = timerBegin(0, 240, true);
-	timerAttachInterrupt(timer, &onTimer, true);
-	timerAlarmWrite(timer, 7200000000, true);
+	//timer = timerBegin(0, 240, true);
+	//timerAttachInterrupt(timer, &onTimer, true);
+	//timerAlarmWrite(timer, 7200000000, true);
 }
 
 // the loop function runs over and over again until power down or reset
@@ -66,5 +73,7 @@ void loop() {
 	foodItem foodIList[30];
 	curInventory->foodIList = foodIList;
 	theGame.genShopItems(); 
+	theGame.setUp();
+	theGame.loadGameData(curInventory); 
 	theGame.idleLoop(curInventory);
 }

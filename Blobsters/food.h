@@ -22,11 +22,13 @@ struct foodItem {
 	bool healthy = false;
 	int price = 0;
 	char* filepath = " NULL ";
+	int fdID = 0; 
 };
 
 class food {
 public:
-	foodItem genFoods();
+	foodItem genFoods(int isRand, int fID);
+	/*foodItem genFoods(bool isRand, int fID);*/
 	foodItem giveOOS();
 }
 ;

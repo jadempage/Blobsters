@@ -27,6 +27,7 @@ public:
 
 	bool m_shouldContinue = true;
 	void idleLoop(Inventory* curInventory);
+	void setUp();
 	void genShopItems();
 	void showShop(Inventory* curInventory);
 	void showStats(Inventory* curInventory);
@@ -43,13 +44,20 @@ public:
 	bool btnCPress;
 	void interruptAbtn();
 	void interruptBbtn();
-	void interruptCbtn(); 
+	void interruptCbtn();
+	void saveGameData(Inventory* curInventory);
+	void loadGameData(Inventory* curInventory);
+	void removeChar(char* str, unsigned int index);
+	char* findInFile(String toFind, String fString);
+	int noInterrupts = 0; 
+	bool saveInter = false; 
 
 	struct curChar {
 		char name[20]; 
 		char colour[20];
 		int happiness;
 		int fullness;
+		bool isAlive = true; 
 	};
 
 	curChar cChar; 

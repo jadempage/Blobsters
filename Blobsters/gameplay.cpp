@@ -15,10 +15,7 @@ foodItem foodListC[FOOD_QTY];
 
 void gamePlay::idleLoop(Inventory* curInventory)
 {
-	strcpy(cChar.colour, "Blue");
-	strcpy(cChar.name, "Thingy");
-	cChar.fullness = 10;
-	cChar.happiness = 10; 
+	
 	m_shouldContinue = true;
 	int screensizex = 320;
 	int screensizey = 240;
@@ -49,6 +46,10 @@ void gamePlay::idleLoop(Inventory* curInventory)
 		delay(1000);
 		refloor(0, 176, 320, 260, xPosMod, yPosMod, floor_tile, 64, 64);
 		M5.update();
+		if (saveInter == true) {
+			//saveGameData(curInventory);
+			saveInter = false; 
+		}
 		if (btnAPress == true) {
 			clearButtons();
 			showStats(curInventory);
@@ -62,6 +63,7 @@ void gamePlay::idleLoop(Inventory* curInventory)
 		if (btnCPress == true) {
 			clearButtons();
 			showInventory(curInventory); 
+			idleLoop(curInventory);
 		}
 	}
 }
@@ -71,11 +73,19 @@ bool IsInBounds(const T& value, const T& low, const T& high) {
 	return !(value < low) && !(high < value);
 }
 
+void gamePlay::setUp() {
+	//Only run this once!
+	strcpy(cChar.colour, "Blue");
+	strcpy(cChar.name, "Thingy");
+	cChar.fullness = 10;
+	cChar.happiness = 10;
+}
+
 void gamePlay::genShopItems() {
 	foodItem thisFoodItem;
 	food curFoods;
 	for (int i = 0; i < FOOD_QTY; i++) {
-		thisFoodItem = curFoods.genFoods();
+		thisFoodItem = curFoods.genFoods(1, 0);
 		foodListC[i] = thisFoodItem;
 	}
 }
@@ -127,7 +137,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 				int curY = 28; 
 				foodItem toAdd = foodListC[curSlot];
 			//	curInventory->foodIList[curInventory->numOfFoods + 1] = toAdd; 
-				memcpy(&curInventory->foodIList[(curInventory->numOfFoods)], &toAdd, sizeof(toAdd)); 
+				memcpy(&curInventory->foodIList[(curInventory->numOfFoods)], &toAdd, sizeof(toAdd));  
 				curInventory->numOfFoods = curInventory->numOfFoods + 1;
 				foodListC[curSlot] = curFoods.giveOOS();
 				for (int i = 0; i < FOOD_QTY; i++) {
@@ -275,42 +285,44 @@ void gamePlay::showInventory(Inventory* curInventory)
 void gamePlay::showFridge(Inventory* curInventory) {
 	int itemSize = curInventory->numOfFoods;
 	foodItem curFoodItem;
-	int curX = 143;
-	int curY = 115;
+	food curFoods;
+	int curX = 50;
+	int curY = 30;
+	int maxSize;
 	char fillString[3];
 	m5.Lcd.drawPngFile(SD, "/bg/Fridge.png", 0, 0);
 	int fridgePage = 0;
 	int foodSlot = 0;
-	for (foodSlot; foodSlot < FRIDGE_QTY * fridgePage; foodSlot++) {
-		curFoodItem = curInventory->foodIList[foodSlot];
-		DUMP(foodSlot); 
+	if (itemSize < 10) {
+		maxSize = itemSize;
+	}
+	else {
+		maxSize = 10;
+	}
+	m5.Lcd.setTextSize(1);
+	m5.Lcd.drawString("0", 45, 205);
+	m5.Lcd.setTextSize(2);
+	M5.Lcd.setTextColor(TFT_BLACK, 0x4B8F);
+	for (int i = 0; i < maxSize + 1; i++) {
+		curFoodItem = curInventory->foodIList[i];
 		const char* filePath = curFoodItem.filepath;
-		DUMP(filePath);
 		m5.Lcd.drawPngFile(SD, filePath, curX, curY, 40, 40);
 		curX = curX + 52;
-		if (foodSlot == 4) {
+		if (i == 4) {
 			curY = curY + 48;
-			curX = 98;
+			curX = 50;
 		}
-		else {
-			foodSlot = foodSlot + 1; 
-		}
-		Serial.write("DONE DRAWING PNG?!?!");
 	}
 	while (!btnCPress) {
 		M5.update();
-		curFoodItem = curInventory->foodIList[foodSlot];
-		DUMP(curFoodItem.foodName);
-		DUMP(curFoodItem.price);
-		DUMP(curFoodItem.fill);
-		DUMP(curFoodItem.filepath); 
-		m5.Lcd.drawString(curFoodItem.foodName, 80, 125);
+		m5.Lcd.drawString(curInventory->foodIList[foodSlot].foodName, 80, 120);
 		itoa(curInventory->foodIList[foodSlot].fill, fillString, 10);
-		m5.Lcd.drawString(fillString, 150, 195);
 		if (btnAPress == true) {
+			curFoodItem = curInventory->foodIList[foodSlot];
 			clearButtons();
-			m5.Lcd.drawString("--", 150, 195);
-			if (foodSlot == FOOD_QTY - 1) {
+			m5.Lcd.drawString("  ", 150, 155);
+			m5.Lcd.drawString(fillString, 150, 155);
+			if (foodSlot == itemSize - 1) {
 				foodSlot = 0;
 			}
 			else {
@@ -318,42 +330,41 @@ void gamePlay::showFridge(Inventory* curInventory) {
 			}
 		}
 		if (btnBPress == true) {
-			clearButtons();
-			//Eat the item
-
+			if (curInventory->foodIList[foodSlot].price > 0) {
+				clearButtons();
+				int curX = 98;
+				int curY = 28;
+				curInventory->numOfFoods = curInventory->numOfFoods - 1;
+				curInventory->foodIList[foodSlot] = curFoods.giveOOS();
+				cChar.fullness = cChar.fullness + curInventory->foodIList[foodSlot].fill;
+				for (int i = 0; i < FOOD_QTY; i++) {
+					const char* filePath = curInventory->foodIList[i].filepath;
+					for (int i = 0; i < maxSize + 1; i++) {
+						curFoodItem = curInventory->foodIList[i];
+						const char* filePath = curFoodItem.filepath;
+						if (strcmp(filePath, "/food/OOS.png") == 0) {
+							m5.Lcd.drawPngFile(SD, filePath, curX - 5, curY - 5, 40, 40);
+						}
+						else {
+							m5.Lcd.drawPngFile(SD, filePath, curX, curY, 40, 40);
+						}
+						curX = curX + 52;
+						if (i == 4) {
+							curY = curY + 48;
+							curX = 50;
+						}
+					}
+				}
+			}
+			else {
+				//can't eat what doesn't exist
+			}
+			if (btnCPress == true) {
+				clearButtons();
+				return;
+			}
 		}
 	}
-	if (btnCPress == true) {
-		clearButtons();
-		return;
-	}
-
-
-
-
-
-	/*move to fridge*/
-//int itemsSize = curInventory->numOfFoods;
-// DUMP(itemsSize);
-// Serial.write("\n");
-//if (itemsSize < 1) {
-//	m5.Lcd.drawString("Empty :( ", curX, curY);
-//}
-//else {
-//	for (int i = 0; i < itemsSize - 1; i++) {
-//		Serial.write("Cycling: ");
-//		DUMP(i); 
-//		foodItem testItem = curInventory->foodIList[i];
-//		Serial.write("GOT TEST ITEM");
-//		const char* filePath = curInventory->foodIList[i].filepath;
-//		Serial.write("GOT FILE PATH: \n");
-//		m5.Lcd.drawPngFile(SD, filePath, curX, 10, 96, 96);
-//		Serial.write("DREW PNG: \n"); 
-//		//m5.Lcd.drawString(curInventory->foodIList[i].foodName, curX, curY);
-//		Serial.write("DREW STR: \n");
-//		curX = curX + 20;
-//	}
-//}
 }
 
 void gamePlay::clearButtons() {
@@ -361,10 +372,6 @@ void gamePlay::clearButtons() {
 	btnBPress = false;
 	btnCPress = false; 
 }
-
-
-
-
 
 //Params: x/yMin = minimum x/y, x/yMax = max x/y Pos, tile = tile sprite, x/ypos mod = x/y of where sprite is, x/yMod = how big the thing to cover is 
 void gamePlay::refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod) {
@@ -383,8 +390,11 @@ void gamePlay::refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int 
 
 void gamePlay::interruptTimer()
 {
-	Serial.write("Char fullness down"); 
+	//This will do for now, may want more complicated food thingy eventually, esp as we need to use this timer
+	//For other times like aging and shop reset n stuff
 	cChar.fullness = cChar.fullness - 1; 
+	noInterrupts++; 
+	saveInter = true; 
 }
 
 void gamePlay::interruptAbtn()
@@ -400,4 +410,159 @@ void gamePlay::interruptBbtn()
 void gamePlay::interruptCbtn()
 {
 	btnCPress = true; 
+}
+
+void gamePlay::saveGameData(Inventory* curInventory) {
+	File sfile = SD.open("/save.txt", FILE_WRITE);
+	if (SD.exists("/save.txt")) {   // If the file is available, write to it
+		Serial.write("WROTE TO FILE \n"); 
+		sfile.printf("Nam:%s*", cChar.name);
+		sfile.printf("\n Col:%s*", cChar.colour);
+		sfile.printf("\n Ful:%d*", cChar.fullness);
+		sfile.printf("\n Hap:%d*", cChar.happiness);
+		sfile.printf("\n Alv:%d*", cChar.isAlive);
+		//Inventory 
+		sfile.printf("\n NoF:%d", curInventory->numOfFoods);
+		if (curInventory->numOfFoods > 0) {
+			sfile.printf("\n Foo:( ");
+		}
+		for (int i = 0; i < curInventory->numOfFoods; i++) {
+			if (i == (curInventory->numOfFoods - 1)) {
+				sfile.printf("%d )", curInventory->foodIList[i].fdID);
+			}
+			else {
+				sfile.printf("%d,", curInventory->foodIList[i].fdID);
+			}
+		}
+		sfile.printf(")*");
+		sfile.printf("\n Mon:%d*", curInventory->currentMoney);
+		sfile.close(); 
+	}
+	else {
+		Serial.write("CANT WRITE TO FILE \n"); 
+	}
+ }
+
+void gamePlay::loadGameData(Inventory* curInventory) {
+	//TO DO:
+	//Change "FOO" to "FIL" to prevent it reading food! 
+	//Check why "FUL" is registering as food 
+	String sFileString;
+	char* resStr; 
+	food curFoods; 
+	File sfile = SD.open("/save.txt", FILE_READ);
+	if (SD.exists("/save.txt")) {   // If the file is available, read from it
+		sFileString = sfile.readString();
+		DUMP(sFileString);
+		Serial.write("/n"); 
+	}
+	else {
+		Serial.write("No save found \n");
+		return;
+	}
+	//Name
+	resStr = findInFile("Nam:", sFileString);
+	DUMP(resStr); 
+	if (strlen(resStr) > 0) {
+		Serial.printf("Char name is %s \n", resStr); 
+		strcpy(cChar.name, resStr);
+	}
+	//Colour
+	resStr = findInFile("Col:", sFileString);
+	resStr = ""; 
+	if (strlen(resStr) > 0) {
+		Serial.printf("Char col is %s \n", resStr);
+		strcpy(cChar.colour, resStr);
+	}
+	//Hunger
+	resStr = findInFile("Ful:", sFileString);
+	if (strlen(resStr) > 0) {
+		Serial.printf("Char full is %s \n", resStr);
+		cChar.fullness = atoi(resStr);
+	}
+	//Happy
+	resStr = findInFile("Hap:", sFileString);
+	if (strlen(resStr) > 0) {
+		Serial.printf("Char hap is %s \n", resStr);
+		cChar.happiness = atoi(resStr);
+	}
+	//Alive??
+	resStr = findInFile("Alv:", sFileString);
+	if (strlen(resStr) > 0) {
+		Serial.printf("Char is alive?  %s \n", resStr);
+		cChar.isAlive = atoi(resStr);
+	}
+	//Food no
+	resStr = findInFile("NoF:", sFileString);
+	if (strlen(resStr) > 0) {
+		Serial.printf("Food qty is %s \n", resStr);
+		curInventory->numOfFoods = atoi(resStr); 
+	}
+	//Foods
+	//Split strings on the delemter, and add them into an array of numbers. Then read the array. If the next item is not space, append it to a temp string.
+	//If the next item is space, then that's all the numbers in that ID and a food is generated based off of that ID, and added to the current slot
+	//of the food array 
+	resStr = findInFile("Fli:", sFileString);
+	char allNumbers[200];
+	char delim[] = ",";
+	int curSlot = 0; 
+	if (strlen(resStr) > 0) {
+			removeChar(resStr, 0);
+			removeChar(resStr, (strlen(resStr)-1));
+			Serial.write("REMOVED BRACKETS \n");
+			DUMP(resStr); 
+			strcpy(allNumbers, resStr);
+			char* ptr = strtok(allNumbers, delim);
+			while (ptr != NULL) {
+				if (strlen(ptr) > 0) {
+					ptr = strtok(NULL, delim);
+					DUMP(ptr);
+					if (ptr == NULL) {
+						break;
+					}
+					int fdID = atoi(ptr);
+					Serial.write("Genning food \n");
+					curInventory->foodIList[curSlot] = curFoods.genFoods(0, fdID);
+					curSlot++;
+				}
+			}
+		}
+	}
+
+void gamePlay::removeChar(char* str, unsigned int index) {
+	char* src;
+	for (src = str + index; *src != '\0'; *src = *(src + 1), ++src);
+	*src = '\0';
+}
+
+
+char* gamePlay::findInFile(String toFind, String fString) {
+	// If string not empty Find where the required string starts For all chars in string If the cur char is not *
+	// Add it to temp string, increment strI so next valid char goes in next slot 
+	char tempStr[50] = "";
+	char* ch = new char[50];
+	/*String tempStr;*/
+	/*int strI = 0;*/
+
+	if (!fString.isEmpty()) {				
+		int i = fString.indexOf(toFind);	
+		i = i + 4;
+		Serial.printf("Found index of %s at %d", toFind, i);
+		if (i > -1)
+		{
+			for (i; i < fString.length(); i++) 
+			{
+				if (fString[i] != '*') {			
+					char c = fString.charAt(i);
+					strncat(tempStr, &c, 1);
+				}
+				else {
+					break;
+				}
+			}
+		}
+	}
+	strcpy(ch, tempStr);
+	DUMP(ch);
+	return ch;
 }
