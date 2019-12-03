@@ -37,6 +37,7 @@ public:
 	void clearButtons();
 	void refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod);
 	void interruptTimer();
+	void timerHandler(Inventory *curInventory);
 	char* mapLocationNames[3] = { "Shop", "Work", "Meet" };
 	char* invLocationNames[2] = { "Items", "Food" };
 	bool btnAPress;
@@ -50,7 +51,11 @@ public:
 	void removeChar(char* str, unsigned int index);
 	char* findInFile(String toFind, String fString);
 	int noInterrupts = 0; 
-	bool saveInter = false; 
+	int hungerInterrupts = 0;
+	int happinessInterrupts = 0;
+	int ageInterrupts = 0; 
+	int saveInterrupts = 0; 
+	bool checkInterrupts;
 
 	struct curChar {
 		char name[20]; 
@@ -58,6 +63,7 @@ public:
 		int happiness;
 		int fullness;
 		bool isAlive = true; 
+		int age; 
 	};
 
 	curChar cChar; 

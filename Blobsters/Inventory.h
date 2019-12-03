@@ -9,7 +9,7 @@ struct Inventory {
 	foodItem* foodIList;
 	//Vector<foodItem> foodIList;
 	Vector<itemStruct> itemIList; 
-	int numOfFoods;
+	int numOfFoods = 0;
 	int numOfOthers;
 	int currentMoney;
 };
