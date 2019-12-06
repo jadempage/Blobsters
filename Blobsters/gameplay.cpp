@@ -9,9 +9,18 @@
 #define ZERO 1e-10
 #define isBetween(A, B, C) ( ((A-B) > - ZERO) && ((A-C) < ZERO) )
 
-
+/* To do:
+1) Handle fridge showing multiple pages
+2) Make fridge "Sold out" thing not look shit (Mostly fixed, still leftover "max size" errors and only first one gets new ico 
+3) Don't let player overfill inventory
+4) Have shop change on timer, not reset 
+5) Add shop stock to save
+6) Add age to save
+7) Fix button bounce
+*/
 
 foodItem foodListC[FOOD_QTY];
+audio aPlayer;
 
 void gamePlay::idleLoop(Inventory* curInventory)
 {
@@ -121,10 +130,13 @@ void gamePlay::showShop(Inventory* curInventory) {
 	}
 	while (!btnCPress) {
 		M5.update();
+		aPlayer.wavloop();
+		Serial.write("INIT LOOP DONE \n"); 
 		m5.Lcd.drawString(foodListC[curSlot].foodName, 80, 165);
 		itoa(foodListC[curSlot].price, priceString, 10);
 		m5.Lcd.drawString(priceString, 150, 195);
 		if (btnAPress == true) {
+			aPlayer.playSound(scButtonMain);
 			clearButtons();
 			m5.Lcd.drawString("---", 150, 195);
 			if (curSlot == FOOD_QTY - 1){
@@ -170,6 +182,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 		}
 	}
 	if (btnCPress == true) {
+		aPlayer.forceStop(); 
 		clearButtons();
 		return;
 	}
@@ -341,27 +354,26 @@ void gamePlay::showFridge(Inventory* curInventory) {
 		if (btnBPress == true) {
 			if (curInventory->foodIList[foodSlot].price > 0) {
 				clearButtons();
-				int curX = 98;
-				int curY = 28;
+				int curX = 50;
+				int curY = 30;
 				curInventory->numOfFoods = curInventory->numOfFoods - 1;
-				curInventory->foodIList[foodSlot] = curFoods.giveOOS();
+				maxSize--; 
+				curInventory->foodIList[foodSlot] = curFoods.giveEaten();
 				cChar.fullness = cChar.fullness + curInventory->foodIList[foodSlot].fill;
 				for (int i = 0; i < maxSize; i++) {
-					const char* filePath = curInventory->foodIList[foodSlot].filepath;
-					for (int i = 0; i < maxSize; i++) {
-						curFoodItem = curInventory->foodIList[foodSlot];
-						const char* filePath = curFoodItem.filepath;
-						if (strcmp(filePath, "/food/OOS.png") == 0) {
-							m5.Lcd.drawPngFile(SD, filePath, curX - 5, curY - 5, 40, 40);
-						}
-						else {
-							m5.Lcd.drawPngFile(SD, filePath, curX, curY, 40, 40);
-						}
-						curX = curX + 52;
-						if (i == 4) {
-							curY = curY + 48;
-							curX = 50;
-						}
+					DUMP(maxSize); 
+					curFoodItem = curInventory->foodIList[i];
+					const char* filePath = curFoodItem.filepath;
+					if (strcmp(filePath, "/food/OOS.png") == 0) {
+						m5.Lcd.drawPngFile(SD, filePath, curX - 5, curY - 5, 40, 40);
+					}
+					else {
+						m5.Lcd.drawPngFile(SD, filePath, curX, curY, 40, 40);
+					}
+					curX = curX + 52;
+					if (i == 4) {
+						curY = curY + 48;
+						curX = 50;
 					}
 				}
 			}
@@ -493,9 +505,6 @@ void gamePlay::saveGameData(Inventory* curInventory) {
  }
 
 void gamePlay::loadGameData(Inventory* curInventory) {
-	//TO DO:
-	//Fix file load skipping first food
-	//Find out why fridge is displaying -1 items 
 	String sFileString;
 	char* resStr; 
 	food curFoods; 
@@ -542,16 +551,7 @@ void gamePlay::loadGameData(Inventory* curInventory) {
 		Serial.printf("Char is alive?  %s \n", resStr);
 		cChar.isAlive = atoi(resStr);
 	}
-	//Food no
-	//resStr = findInFile("NoF:", sFileString);
-	//if (strlen(resStr) > 0) {
-	//	Serial.printf("Food qty is %s \n", resStr);
-	//	curInventory->numOfFoods = atoi(resStr); 
-	//}
-	//Foods
-	//Split strings on the delemter, and add them into an array of numbers. Then read the array. If the next item is not space, append it to a temp string.
-	//If the next item is space, then that's all the numbers in that ID and a food is generated based off of that ID, and added to the current slot
-	//of the food array 
+
 	resStr = findInFile("Fli:", sFileString);
 	char allNumbers[200];
 	char delim[] = ",";

@@ -6,5 +6,3 @@
 void thisInventory::useFoodItem(foodItem theItem)
 {
 }
-
-

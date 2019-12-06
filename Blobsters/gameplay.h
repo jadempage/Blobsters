@@ -10,6 +10,7 @@
 #endif
 #endif
 
+#include "audio.h"
 #include <M5Stack.h>
 #include <Vector.h>
 #include <ArduinoTrace.h>

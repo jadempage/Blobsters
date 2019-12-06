@@ -104,3 +104,13 @@ foodItem food::giveOOS() {
 	thisItem.fill = 0; 
 	return thisItem; 
 }
+
+foodItem food::giveEaten() {
+	foodItem thisItem;
+	thisItem.description = "All gone     ";
+	thisItem.filepath = "/food/OOS.png";
+	thisItem.foodName = "Eaten!       ";
+	thisItem.price = 0;
+	thisItem.fill = 0;
+	return thisItem;
+}

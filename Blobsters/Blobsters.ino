@@ -1,4 +1,3 @@
-
 /*
  Name:		Blobsters.ino
  Created:	9/29/2019 10:17:18 PM
@@ -10,6 +9,38 @@
 #ifndef bool
 
 
+//#include <Game_Audio.h>
+//#include "audio.h"
+#include <AudioStatus.h>
+#include <AudioOutputSTDIO.h>
+#include <AudioOutputSerialWAV.h>
+#include <AudioOutputNull.h>
+#include <AudioOutputMixer.h>
+#include <AudioOutputI2SNoDAC.h>
+#include <AudioOutputI2S.h>
+#include <AudioOutputFilterDecimate.h>
+#include <AudioOutputBuffer.h>
+#include <AudioOutput.h>
+#include <AudioLogger.h>
+#include <AudioGeneratorWAV.h>
+#include <AudioGeneratorRTTTL.h>
+#include <AudioGeneratorMP3a.h>
+#include <AudioGeneratorMP3.h>
+#include <AudioGeneratorMOD.h>
+#include <AudioGeneratorMIDI.h>
+#include <AudioGeneratorFLAC.h>
+#include <AudioGeneratorAAC.h>
+#include <AudioGenerator.h>
+#include <AudioFileStream.h>
+#include <AudioFileSourceSTDIO.h>
+#include <AudioFileSourceSD.h>
+#include <AudioFileSourcePROGMEM.h>
+#include <AudioFileSourceID3.h>
+#include <AudioFileSourceICYStream.h>
+#include <AudioFileSourceHTTPStream.h>
+#include <AudioFileSourceFS.h>
+#include <AudioFileSourceBuffer.h>
+#include <AudioFileSource.h>
 #include <Vector.h>
 #include <M5Stack.h>
 #include "gameplay.h"
@@ -35,7 +66,7 @@ void IRAM_ATTR isrc() {
 	//m5.Lcd.print("C INTERRUPT ");
 }
 
-void IRAM_ATTR onTimer() {
+void IRAM_ATTR onInterTimer() {
 	theGame.interruptTimer();
 }
 
@@ -51,7 +82,7 @@ void setup() {
 	}
 
 	hw_timer_t* theTimer = timerBegin(0, 80, true);
-	timerAttachInterrupt(theTimer, onTimer, true);
+	timerAttachInterrupt(theTimer, onInterTimer, true);
 	timerAlarmWrite(theTimer, 20000000, true);
 	timerAlarmEnable(theTimer);
 	//2000000 = 2 seconds, We want like an hour IG so 3600000000, 600000000 = 10 min for testing 

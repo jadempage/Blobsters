@@ -30,5 +30,6 @@ public:
 	foodItem genFoods(int isRand, int fID);
 	/*foodItem genFoods(bool isRand, int fID);*/
 	foodItem giveOOS();
+	foodItem giveEaten();
 }
 ;
