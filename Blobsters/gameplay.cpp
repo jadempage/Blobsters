@@ -55,7 +55,9 @@ void gamePlay::idleLoop(Inventory* curInventory)
 		delay(1000);
 		refloor(0, 176, 320, 260, xPosMod, yPosMod, floor_tile, 64, 64);
 		M5.update();
+		aPlayer.wavloop();
 		if (checkInterrupts == true) {
+			aPlayer.forceStop();
 			timerHandler(curInventory);
 			checkInterrupts = false; 
 		}
@@ -64,17 +66,23 @@ void gamePlay::idleLoop(Inventory* curInventory)
 		//	saveInter = false; 
 		//}
 		if (btnAPress == true) {
+			aPlayer.playSound(scButtonA);
 			clearButtons();
+			aPlayer.forceStop();
 			showStats(curInventory);
 			idleLoop(curInventory);
 		}
 		if (btnBPress == true) {
+			aPlayer.playSound(scButtonB);
 			clearButtons();
+			aPlayer.forceStop();
 			showMap(curInventory);
 			idleLoop(curInventory);
 		}
 		if (btnCPress == true) {
+			aPlayer.playSound(scButtonC);
 			clearButtons();
+			aPlayer.forceStop();
 			showInventory(curInventory); 
 			idleLoop(curInventory);
 		}
@@ -136,7 +144,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 		itoa(foodListC[curSlot].price, priceString, 10);
 		m5.Lcd.drawString(priceString, 150, 195);
 		if (btnAPress == true) {
-			aPlayer.playSound(scButtonMain);
+			aPlayer.playSound(scButtonA);
 			clearButtons();
 			m5.Lcd.drawString("---", 150, 195);
 			if (curSlot == FOOD_QTY - 1){
@@ -148,6 +156,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 		}
 		if (btnBPress == true) {
 			clearButtons();
+			aPlayer.playSound(scButtonB);
 			if (foodListC[curSlot].price > 0) {
 				int curX = 98;
 				int curY = 28; 
@@ -182,6 +191,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 		}
 	}
 	if (btnCPress == true) {
+		aPlayer.playSound(scButtonC);
 		aPlayer.forceStop(); 
 		clearButtons();
 		return;
@@ -210,15 +220,20 @@ void gamePlay::showStats(Inventory* curInventory) {
 	//m5.Lcd.drawString(str, 85, 120); 
 	while (!btnCPress) {
 		M5.update();
+		aPlayer.wavloop();
 		if (btnAPress == true) {
+			aPlayer.playSound(scButtonA);
 			clearButtons();
 		}
 		if (btnBPress == true) {
+			aPlayer.playSound(scButtonB);
 			clearButtons();
 		}
 	}
 	if (btnCPress == true) {
+		aPlayer.playSound(scButtonC);
 		clearButtons();
+		aPlayer.forceStop();
 		return;
 	}
 }
@@ -233,7 +248,9 @@ int curPos = 0;
    M5.Lcd.drawString(mapLocationNames[0], textX , textY);
 	while (!btnCPress) {
 		M5.update();
+		aPlayer.wavloop();
 		if (btnAPress == true) {
+			aPlayer.playSound(scButtonA);
 			clearButtons();
 			delay(2000);
 			refloor(12, 192, 112, 224, textX, textY, map_box_tile, 160, 32);
@@ -244,6 +261,7 @@ int curPos = 0;
 			M5.Lcd.drawString(mapLocationNames[curPos], textX, textY);
 		}
 		if (btnBPress == true) {
+			aPlayer.playSound(scButtonB);
 			clearButtons();
 			if (strcmp(mapLocationNames[curPos], "Shop") == 0){
 				clearButtons();
@@ -258,7 +276,9 @@ int curPos = 0;
 		}
 	}
 	if (btnCPress == true) {
+		aPlayer.playSound(scButtonC);
 		clearButtons();
+		aPlayer.forceStop();
 		return;
 	}
 }
@@ -275,7 +295,9 @@ void gamePlay::showInventory(Inventory* curInventory)
 	M5.Lcd.drawString(invLocationNames[0], textX, textY);
 	while (!btnCPress) {
 		M5.update();
+		aPlayer.wavloop();
 		if (btnAPress == true) {
+			aPlayer.playSound(scButtonA);
 			clearButtons();
 			refloor(137, 41, 238, 71, textX, textY, inv_box_tile, 160, 32);
 			curPos = curPos + 1;
@@ -285,6 +307,7 @@ void gamePlay::showInventory(Inventory* curInventory)
 			M5.Lcd.drawString(invLocationNames[curPos], textX, textY);
 		}
 		if (btnBPress == true) {
+			aPlayer.playSound(scButtonB);
 			clearButtons();
 			if (strcmp(invLocationNames[curPos], "Food") == 0) {
 				clearButtons();
@@ -297,7 +320,9 @@ void gamePlay::showInventory(Inventory* curInventory)
 		}
 	}
 	if (btnCPress == true) {
+		aPlayer.playSound(scButtonC);
 		clearButtons();
+		aPlayer.forceStop(); 
 		return;
 	}
 }
@@ -335,12 +360,14 @@ void gamePlay::showFridge(Inventory* curInventory) {
 		}
 	}
 	while (!btnCPress) {
+		aPlayer.wavloop();
 		M5.update();
 		m5.Lcd.drawString(curInventory->foodIList[foodSlot].foodName, 80, 120);
 		itoa(curInventory->foodIList[foodSlot].fill, fillString, 10);
 		m5.Lcd.drawString(fillString, 150, 155);
 		/*Serial.write(curInventory->foodIList[foodSlot].foodName);*/
 		if (btnAPress == true) {
+			aPlayer.playSound(scButtonA);
 			curFoodItem = curInventory->foodIList[foodSlot];
 			clearButtons();
 			m5.Lcd.drawString("  ", 150, 155);			
@@ -353,6 +380,7 @@ void gamePlay::showFridge(Inventory* curInventory) {
 		}
 		if (btnBPress == true) {
 			if (curInventory->foodIList[foodSlot].price > 0) {
+				aPlayer.playSound(scButtonB);
 				clearButtons();
 				int curX = 50;
 				int curY = 30;
@@ -381,6 +409,7 @@ void gamePlay::showFridge(Inventory* curInventory) {
 				//can't eat what doesn't exist
 			}
 			if (btnCPress == true) {
+				aPlayer.playSound(scButtonC);
 				clearButtons();
 				return;
 			}
