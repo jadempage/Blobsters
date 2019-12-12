@@ -27,9 +27,7 @@ void audio::wavloop()
 	if (audioRunning) {
 		Serial.write(audioRunning);
 		if (wav->isRunning()) {
-			Serial.printf("Wav running");
 			if (!wav->loop()) {
-				Serial.printf("Wav not loop");
 				wav->stop();
 				audioRunning = false; 
 				delete wav;
@@ -37,21 +35,20 @@ void audio::wavloop()
 				delete out;
 			}
 		}
-		else {
-			Serial.printf("WAV done\n");
-			delay(1000);
-		}
+		//else {
+		//	delay(1000);
+		//}
 	}
 
 }
 
 void audio::forceStop() {
 	Serial.write(audioRunning);
-	if (audioRunning) {
+	if (wav->isRunning()) {
 		wav->stop();
-		delete wav;
-		delete file;
-		delete out;
+		if (wav) { delete wav; }
+		if (wav) { delete file; }
+		if (wav) { delete out; }
 	}
 }
 	

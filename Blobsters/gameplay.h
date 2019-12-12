@@ -13,6 +13,7 @@
 #include "audio.h"
 #include <M5Stack.h>
 #include <Vector.h>
+#include "minigameHelper.h"
 #include <ArduinoTrace.h>
 #include "food.h"
 #include "Item.h"
@@ -51,6 +52,7 @@ public:
 	void loadGameData(Inventory* curInventory);
 	void removeChar(char* str, unsigned int index);
 	char* findInFile(String toFind, String fString);
+	void game_highlow();
 	int noInterrupts = 0; 
 	int hungerInterrupts = 0;
 	int happinessInterrupts = 0;

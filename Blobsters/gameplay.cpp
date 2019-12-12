@@ -252,7 +252,7 @@ int curPos = 0;
 		if (btnAPress == true) {
 			aPlayer.playSound(scButtonA);
 			clearButtons();
-			delay(2000);
+			delay(500);
 			refloor(12, 192, 112, 224, textX, textY, map_box_tile, 160, 32);
 			curPos = curPos + 1;
 			if (curPos > 2) {
@@ -264,11 +264,10 @@ int curPos = 0;
 			aPlayer.playSound(scButtonB);
 			clearButtons();
 			if (strcmp(mapLocationNames[curPos], "Shop") == 0){
-				clearButtons();
 				showShop(curInventory);
 			}
 			else if (strcmp(mapLocationNames[curPos], "Work") == 0) {
-				//Do the work
+				game_highlow(); 
 			}
 			else if (strcmp(mapLocationNames[curPos], "Meet") == 0) {
 				//Do the meet
@@ -653,4 +652,177 @@ char* gamePlay::findInFile(String toFind, String fString) {
 	strcpy(ch, tempStr);
 	DUMP(ch);
 	return ch;
+}
+
+void gamePlay::game_highlow() {
+	//Card 2 doesn't update (?)
+	//Sometimes the isHigher function returns bullshit
+	//Add sounds
+	//Add char anim
+	int cardsLeft = 52; 
+	char* cardRank; 
+	char* cardRank2;
+	unsigned short toDraw[625]; 
+	unsigned short toDraw2[625];
+	int card1x = 15;
+	int card2x = 202;
+	int cardy = 57;
+	int cardw = 105;
+	int cardh = 125; 
+	game_HiLo newGame; 
+	singleCard curCard; 
+	singleCard nextCard; 
+	m5.Lcd.drawPngFile(SD, "/bg/MG_HighLow.png", 0, 0);
+	singleCard* thisDeck = newGame.generateDeck();
+	bool isHigher = false; 
+	bool waitForChoice = false; 
+
+	newGame.curWinnings = 0;
+	newGame.roundsPlayed = 0;
+	while (!btnCPress) {
+		if (newGame.roundsPlayed == 0) {
+			int rando = (rand() % cardsLeft) + 1;
+			nextCard = thisDeck[rando];
+			thisDeck = newGame.removeCard(rando, thisDeck, cardsLeft);
+			cardsLeft--;
+		}
+		else {
+			Serial.write("Cur card become next card \n"); 
+			curCard = nextCard;
+		}
+		if (newGame.roundsPlayed >= 50) {
+			//Holi crap they cleared the whole deck 
+		}
+		Serial.write(cardsLeft);
+		Serial.write("\n");
+
+		int rando = (rand() % cardsLeft) + 1;
+		curCard = thisDeck[rando];
+		thisDeck = newGame.removeCard(rando, thisDeck, cardsLeft);
+		cardsLeft--;
+		m5.Lcd.fillRect(card1x, cardy, cardw, cardh, WHITE);
+		m5.Lcd.fillRect(card2x, cardy, cardw, cardh, WHITE);
+		DUMP(curCard.theSuit);
+		DUMP(curCard.theVal);
+		switch (curCard.theSuit) {
+		case csHearts: memcpy(toDraw, symb_heart, sizeof(symb_heart)); break;
+			case csClubs: memcpy(toDraw, symb_club, sizeof(symb_club)); break; 
+			case csDiamonds: memcpy(toDraw, symb_diamond, sizeof(symb_diamond)); break; 
+			case csSpades: memcpy(toDraw, symb_spade, sizeof(symb_spade)); break;
+		}
+		DUMP(nextCard.theSuit);
+		DUMP(nextCard.theVal);
+		switch (nextCard.theSuit) {
+		case csHearts: memcpy(toDraw2, symb_heart, sizeof(symb_heart)); break;
+		case csClubs: memcpy(toDraw2, symb_club, sizeof(symb_club)); break;
+		case csDiamonds: memcpy(toDraw2, symb_diamond, sizeof(symb_diamond)); break;
+		case csSpades: memcpy(toDraw2, symb_spade, sizeof(symb_spade)); break;
+		}
+		cardRank = newGame.cardRankNames[thisDeck[rando].theVal];
+		cardRank2 = newGame.cardRankNames[nextCard.theVal];
+		int xPos = 20;
+		int yPos = 85; 
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 3; y++) {
+				m5.Lcd.pushImage(xPos, yPos, 25, 25, toDraw);
+				yPos = yPos + 25;
+			}
+			xPos = xPos + 30; 
+			yPos = 85;
+		}
+
+		m5.Lcd.fillRect(200, 55, 110, 130, BLUE); 
+		m5.Lcd.setTextSize(3);
+		if (curCard.theSuit == csHearts || csClubs) {
+			m5.Lcd.setTextColor(RED);
+		}
+		else {
+			m5.Lcd.setTextColor(BLACK); 
+		}
+		m5.Lcd.drawString(cardRank, 19, 60);
+		m5.Lcd.drawString(cardRank, 100, 160); 
+		m5.Lcd.setTextColor(BLACK);
+		m5.Lcd.setTextSize(2);
+		char winChar[10]; 
+		itoa(newGame.curWinnings, winChar, 10);
+		M5.Lcd.setTextColor(TFT_BLACK, 0x92A7);
+		m5.Lcd.drawString(winChar, 150, 30);
+		isHigher = newGame.isHigher(&curCard, &nextCard);
+		waitForChoice = true;
+		while (waitForChoice) {
+			m5.update(); 
+			if (btnAPress || btnBPress) {
+				// Reveal card
+				m5.Lcd.fillRect(200, 55, 110, 130, WHITE);
+				int xPos = 200;
+				int yPos = 85;
+				for (int x = 0; x < 3; x++) {
+					for (int y = 0; y < 3; y++) {
+						m5.Lcd.pushImage(xPos, yPos, 25, 25, toDraw2);
+						yPos = yPos + 25;
+					}
+					xPos = xPos + 30;
+					yPos = 85;
+				}
+				if (nextCard.theSuit == csHearts || csClubs) {
+					m5.Lcd.setTextColor(RED);
+				}
+				else {
+					m5.Lcd.setTextColor(BLACK);
+				}
+				m5.Lcd.drawString(cardRank2, 250, 60);
+				m5.Lcd.drawString(cardRank2, 250, 160);
+				Serial.write("Card revealed \n"); 
+				if (btnAPress) {
+					clearButtons(); 
+					Serial.write("User guess higher \n");
+					//User guessed higher
+					if (isHigher) {
+						Serial.write("User win \n");
+						//User wins
+						//Do sound, move sprite, yay
+						newGame.curWinnings = newGame.curWinnings + 10;
+						waitForChoice = false; 
+						delay(2000);
+					}
+					else {
+						//Loser!!!!
+						Serial.write("Loser \n");
+						//Do sad music
+						delay(2000);
+						return;
+					}
+				}
+				if (btnBPress) {
+					clearButtons();
+					Serial.write("User guess low \n");
+					//User guessed lower
+					if (isHigher) {
+						Serial.write("User lose \n");
+						//Loser!!!!
+						//Do sad music
+						delay(2000);
+						return;
+					}
+					else {
+						Serial.write("User win \n");
+						//User wins
+						//Do sound, move sprite, yay
+						newGame.curWinnings = newGame.curWinnings + 10;
+						waitForChoice = false; 
+						delay(2000);
+					}
+				}
+		}
+	}
+	newGame.roundsPlayed++; 
+	Serial.write("Next round"); 
+	if (btnCPress) {
+		aPlayer.playSound(scButtonC);
+		clearButtons();
+		delay(200); 
+		aPlayer.forceStop();
+		return;
+	}
+}
 }

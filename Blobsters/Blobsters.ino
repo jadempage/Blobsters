@@ -11,6 +11,7 @@
 
 //#include <Game_Audio.h>
 //#include "audio.h"
+#include "minigameHelper.h"
 #include <AudioStatus.h>
 #include <AudioOutputSTDIO.h>
 #include <AudioOutputSerialWAV.h>
