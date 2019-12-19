@@ -10,6 +10,6 @@ struct itemStruct {
 
 class item {
 public:
-	Vector<itemStruct> itemVList;
+//	Vector<itemStruct> itemVList;
 	item genItem();
 };

@@ -24,27 +24,45 @@
     <ClInclude Include="__vm\.Blobsters.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_Blobsters\Blobsters\food.h">
+    <ClInclude Include="gameplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_Blobsters\Blobsters\gameplay.h">
+    <ClInclude Include="Sprites.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_Blobsters\Blobsters\SDUtil.h">
+    <ClInclude Include="food.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_Blobsters\Blobsters\Sprites.h">
+    <ClInclude Include="Inventory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Item.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="audio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="minigameHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\_Blobsters\Blobsters\food.cpp">
+    <ClCompile Include="gameplay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_Blobsters\Blobsters\gameplay.cpp">
+    <ClCompile Include="food.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_Blobsters\Blobsters\SDUtil.cpp">
+    <ClCompile Include="Inventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Item.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="audio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="minigameHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

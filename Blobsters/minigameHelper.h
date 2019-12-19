@@ -42,12 +42,28 @@ struct singleCard {
 	cardVals theVal;
 };
 
+struct ball {
+	int x, y;
+	int w, h;
+	int dx, dy;
+};
+
+struct paddle {
+	int x, y;
+	int w, h;
+};
+
 class game_HiLo {
 public:
 	int roundsPlayed;
 	int curWinnings = 0;
-	singleCard* generateDeck();
+	std::vector<singleCard> generateVDeck();
 	char* cardRankNames[14] = { "A", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K" };
 	bool isHigher(singleCard* card1, singleCard* card2);
 	singleCard* removeCard(int index, singleCard* theArr, int cardsLeft);
+};
+
+class game_Pong {
+public:
+	int check_collision(ball a, paddle b);
 };

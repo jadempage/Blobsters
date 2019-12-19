@@ -11,6 +11,16 @@
 
 //#include <Game_Audio.h>
 //#include "audio.h"
+
+#include <sd_diskio.h>
+#include <sd_defines.h>
+#include <vfs_api.h>
+#include <FSImpl.h>
+#include <JPEGDecoder.h>
+#include <M5Stack.h>
+#include <FS.h>
+#include <SD.h>
+#include <ArduinoTrace.h>
 #include "minigameHelper.h"
 #include <AudioStatus.h>
 #include <AudioOutputSTDIO.h>
@@ -42,29 +52,36 @@
 #include <AudioFileSourceFS.h>
 #include <AudioFileSourceBuffer.h>
 #include <AudioFileSource.h>
-#include <Vector.h>
-#include <M5Stack.h>
 #include "gameplay.h"
 #include "sprites.h"
 #define bool        int8_t
 #endif
 
 gamePlay theGame;
-
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 50;
 
 void IRAM_ATTR isra() {
-	theGame.interruptAbtn();
-	//m5.Lcd.print("A INTERRUPT ");
+	//if ((millis() - lastDebounceTime) > debounceDelay) {
+		theGame.interruptAbtn();
+	//	lastDebounceTime = millis();
+	//}
 }
 
 void IRAM_ATTR isrb() {
-	theGame.interruptBbtn();
-	//m5.Lcd.print("B INTERRUPT ");
+	//if ((millis() - lastDebounceTime) > debounceDelay) {
+		theGame.interruptBbtn();
+	//	lastDebounceTime = millis();
+	//}
+	//tft.print("B INTERRUPT ");
 }
 
 void IRAM_ATTR isrc() {
-	theGame.interruptCbtn();
-	//m5.Lcd.print("C INTERRUPT ");
+	//if ((millis() - lastDebounceTime) > debounceDelay) {
+		theGame.interruptCbtn();
+	//	lastDebounceTime = millis();
+	//}
+	//tft.print("C INTERRUPT ");
 }
 
 void IRAM_ATTR onInterTimer() {
@@ -73,18 +90,23 @@ void IRAM_ATTR onInterTimer() {
 
 
 void setup() {
-	m5.begin();
+	TFT_eSPI tft = TFT_eSPI();
+	m5.begin(); 
+	tft.begin();
 	Serial.begin(9600);
 	attachInterrupt(37, isrc, FALLING);
 	attachInterrupt(38, isrb, FALLING);
 	attachInterrupt(39, isra, FALLING);
-	if (!SD.begin()) {
-		M5.Lcd.println("Card failed, or not present");
-	}
+	// Set all chip selects high to avoid bus contention during initialisation of each peripheral
 
+
+	if (!SD.begin()) {
+		Serial.println("Card Mount Failed");
+		return;
+	}
 	hw_timer_t* theTimer = timerBegin(0, 80, true);
 	timerAttachInterrupt(theTimer, onInterTimer, true);
-	timerAlarmWrite(theTimer, 20000000, true);
+	timerAlarmWrite(theTimer, 600000000, true);
 	timerAlarmEnable(theTimer);
 	//2000000 = 2 seconds, We want like an hour IG so 3600000000, 600000000 = 10 min for testing 
 
@@ -99,7 +121,7 @@ void loop() {
 	Inventory* curInventory = new Inventory;
 	curInventory->currentMoney = 0;
 	curInventory->foodIList = {};
-	curInventory->itemIList = {};
+//	curInventory->itemIList = {};
 	curInventory->numOfFoods = 0;
 	curInventory->numOfOthers = 0;  
 	foodItem foodIList[30];

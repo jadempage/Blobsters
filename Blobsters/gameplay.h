@@ -10,9 +10,13 @@
 #endif
 #endif
 
-#include "audio.h"
+#include <FS.h>
+#include <SD.h>
+#include <JPEGDecoder.h>
+//#include <TFT_eSPI.h>
 #include <M5Stack.h>
-#include <Vector.h>
+//#include <SPI.h>
+#include "audio.h"
 #include "minigameHelper.h"
 #include <ArduinoTrace.h>
 #include "food.h"
@@ -34,14 +38,16 @@ public:
 	void showShop(Inventory* curInventory);
 	void showStats(Inventory* curInventory);
 	void showMap(Inventory* curInventory);
+	int gameBoard();
 	void showInventory(Inventory* curInventory);
 	void showFridge(Inventory* curInventory);
 	void clearButtons();
 	void refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod);
 	void interruptTimer();
 	void timerHandler(Inventory *curInventory);
-	char* mapLocationNames[3] = { "Shop", "Work", "Meet" };
+	char* mapLocationNames[3] = { "Shop", "Play", "Meet" };
 	char* invLocationNames[2] = { "Items", "Food" };
+	char* gameNames[8] = { "HiLo", "Pong", "Game3", "Game4", "Game5", "Game6", "Game7", "Game8", };
 	bool btnAPress;
 	bool btnBPress;
 	bool btnCPress;
@@ -52,7 +58,11 @@ public:
 	void loadGameData(Inventory* curInventory);
 	void removeChar(char* str, unsigned int index);
 	char* findInFile(String toFind, String fString);
-	void game_highlow();
+	int game_highlow();
+	int game_pong();
+	void gameOverScreen(int winnings, bool didWin);
+	void drawSdJpeg(const char* filename, int xpos, int ypos);
+	void jpegRender(int xpos, int ypos);
 	int noInterrupts = 0; 
 	int hungerInterrupts = 0;
 	int happinessInterrupts = 0;
