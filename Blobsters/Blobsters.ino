@@ -62,26 +62,24 @@ unsigned long lastDebounceTime = 0;
 unsigned long debounceDelay = 50;
 
 void IRAM_ATTR isra() {
-	//if ((millis() - lastDebounceTime) > debounceDelay) {
+	if ((millis() - lastDebounceTime) > debounceDelay) {
 		theGame.interruptAbtn();
-	//	lastDebounceTime = millis();
-	//}
+		lastDebounceTime = millis();
+	}
 }
 
 void IRAM_ATTR isrb() {
-	//if ((millis() - lastDebounceTime) > debounceDelay) {
+	if ((millis() - lastDebounceTime) > debounceDelay) {
 		theGame.interruptBbtn();
-	//	lastDebounceTime = millis();
-	//}
-	//tft.print("B INTERRUPT ");
+		lastDebounceTime = millis();
+	}
 }
 
 void IRAM_ATTR isrc() {
-	//if ((millis() - lastDebounceTime) > debounceDelay) {
+	if ((millis() - lastDebounceTime) > debounceDelay) {
 		theGame.interruptCbtn();
-	//	lastDebounceTime = millis();
-	//}
-	//tft.print("C INTERRUPT ");
+		lastDebounceTime = millis();
+	}
 }
 
 void IRAM_ATTR onInterTimer() {

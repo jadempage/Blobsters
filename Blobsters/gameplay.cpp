@@ -19,14 +19,14 @@
 4) Have shop change on timer, not reset 
 5) Add shop stock to save
 6) Add age to save
-7) Fix button bounce
+7) Fix button bounce - DONE
 8) Add coins to summary screen
 9) HiLo sound system is a bit shit
 10) HiLo seems to give wrong answers
 
 MG Ideas:
-1) HiLow
-2) Pong
+1) HiLow - DONE
+2) Pong - DONE
 3) Ball Maze (Gyro)
 4) Treasure Hunt (Magnetic sensor???)
 5) Fruit Catch
@@ -962,24 +962,26 @@ int gamePlay::game_highlow() {
 int gamePlay::game_pong() {
 	game_Pong ng_Pong;
 	int playerScore = 0;
+	char PlayerScoreCh[2]; 
 	int AIScore = 0;
-	int scoreLimit = 10; 
+	char AIScoreCh[2];
+	int scoreLimit = 5; 
 	bool gameContinue = true; 
 
 	int dashlineX = SCREEN_WIDTH / 2;
 	int dashlineY = 0;
-	int dashlineW = 20;
+	int dashlineW = 10;
 	int dashlineH = SCREEN_HEIGHT; 
 
 	ball theBall;
 	paddle paddlePlayer;
 	paddle paddleAI;
-	paddle paddleCurrent; 
+	
 
 	theBall.x = SCREEN_WIDTH / 2;
 	theBall.y = SCREEN_HEIGHT / 2;
-	theBall.w = 10;
-	theBall.h = 10;
+	theBall.w = 5;
+	theBall.h = 5;
 	theBall.dy = 1;
 	theBall.dx = 1;
 
@@ -988,42 +990,90 @@ int gamePlay::game_pong() {
 	paddlePlayer.w = 10;
 	paddlePlayer.h = 50;
 
-	paddleAI.x = SCREEN_HEIGHT - 10;
+	paddleAI.x = SCREEN_WIDTH - 20;
 	paddleAI.y = SCREEN_HEIGHT / 2 - 50;
 	paddleAI.w = 10;
 	paddleAI.h = 50;
+
+	unsigned long lastAIMove = millis();
+	unsigned long timeNow = 0; 
+
 	tft.fillScreen(TFT_WHITE);
 
+	tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, TFT_BLACK);
+	tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, TFT_BLACK);
+
+	tft.drawString("UP", 30, 210);
+	tft.drawString("DWN", 140, 210);
+	tft.drawString("BAC", 260, 210);
+	tft.setTextSize(4);
+	tft.setTextColor(ORANGE, TFT_WHITE);
+	tft.drawString("3", 0, 0);
+	delay(1000);
+	tft.drawString("2", 0, 0);
+	delay(1000);
+	tft.drawString("1", 0, 0);
+	delay(1000);
+	tft.drawString(" ", 0, 0);
+	tft.drawString("   ", 30, 210);
+	tft.drawString("   ", 140, 210);
+	tft.drawString("   ", 260, 210);
+
 	while (gameContinue) {
-		//Undraw previous circle/paddle
-		tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, 1, TFT_WHITE);
-		tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, 1, TFT_WHITE);
-		tft.fillRect(theBall.x, theBall.y, theBall.w, theBall.h, TFT_WHITE);
+		sprintf(AIScoreCh, "%d", AIScore);
+		tft.drawString(AIScoreCh, 235, 10);
+		sprintf(PlayerScoreCh, "%d", playerScore);
+		tft.drawString(PlayerScoreCh, 72, 10);
+		tft.fillCircle(theBall.x, theBall.y, theBall.w, TFT_WHITE);
 		//beep, beep, beep, beeeep
 		//Handle ball movement
 		theBall.x += theBall.dx;
 		theBall.y += theBall.dy;
 		if (theBall.x < 0) {
+			clearButtons(); 
 			AIScore += 1;
-			//beep, beep, beep, beeeep
-			delay(3000); 
+			tft.setTextSize(4); 
+			tft.setTextColor(ORANGE, TFT_WHITE); 
+			tft.drawString("3", 0, 0);
+			delay(1000);
+			tft.drawString("2", 0, 0);
+			delay(1000);
+			tft.drawString("1", 0, 0);
+			delay(1000);
+			tft.drawString(" ", 0, 0);
 			theBall.x = SCREEN_WIDTH / 2;
 			theBall.y = SCREEN_HEIGHT / 2;
-			theBall.w = 10;
-			theBall.h = 10;
 			theBall.dy = 1;
 			theBall.dx = 1;
+			tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, WHITE);
+			tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, WHITE);
+			paddleAI.x = SCREEN_WIDTH - 20;
+			paddleAI.y = SCREEN_HEIGHT / 2 - 50;
+			paddlePlayer.x = 20;
+			paddlePlayer.y = SCREEN_WIDTH / 2 - 50;
 		}
 		if (theBall.x > SCREEN_WIDTH) {
+			clearButtons();
 			playerScore += 1;
-			//beep, beep, beep, beeeep
-			delay(3000);
+			tft.setTextSize(4);
+			tft.setTextColor(ORANGE, TFT_WHITE);
+			tft.drawString("3", 0, 0);
+			delay(1000);
+			tft.drawString("2", 0, 0);
+			delay(1000);
+			tft.drawString("1", 0, 0);
+			delay(1000);
+			tft.drawString(" ", 0, 0);
 			theBall.x = SCREEN_WIDTH / 2;
 			theBall.y = SCREEN_HEIGHT / 2;
-			theBall.w = 10;
-			theBall.h = 10;
 			theBall.dy = 1;
 			theBall.dx = 1;
+			tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, WHITE);
+			tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, WHITE);
+			paddleAI.x = SCREEN_WIDTH - 20;
+			paddleAI.y = SCREEN_HEIGHT / 2 - 50;
+			paddlePlayer.x = 20;
+			paddlePlayer.y = SCREEN_WIDTH / 2 - 50;
 		}
 		if (theBall.y < 0 || theBall.y > SCREEN_HEIGHT - 10) {
 			theBall.dy = -theBall.dy;
@@ -1031,6 +1081,7 @@ int gamePlay::game_pong() {
 		int cp = ng_Pong.check_collision(theBall, paddlePlayer);
 		int ca = ng_Pong.check_collision(theBall, paddleAI);
 		if (ca == 1 || cp == 1) {
+			paddle paddleCurrent;
 			if (ca == 1) {
 				paddleCurrent = paddleAI;
 			}
@@ -1082,90 +1133,139 @@ int gamePlay::game_pong() {
 				theBall.dy = -4;
 			}
 		}
+
 		//Handle AI move
-		//ball moving down
-		int center = paddleAI.y + 25;
-		if (theBall.dy > 0) {
-			if (theBall.y > center) {
-				paddleAI.y += theBall.dy;
+		timeNow = millis(); 
+		if (timeNow - lastAIMove > 100) { 
+			//Wait tenth sec between AI moves
+			lastAIMove = timeNow; 
+			// Paddle OOB
+			int center = paddleAI.y + 25;
+			if (paddleAI.y < 0) {
+				paddleAI.y = 0;
+				tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
 			}
-			else {
-				paddleAI.y -= theBall.dy;
+			if (paddleAI.y > SCREEN_HEIGHT - paddleAI.h) {
+				paddleAI.y = SCREEN_HEIGHT - (paddleAI.h);
+				tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
 			}
-		}
-		//ball moving up
-		if (theBall.dy < 0) {
-			if (theBall.y < center) {
-				paddleAI.y -= theBall.dy;
+			//ball moving down
+			if (theBall.dy > 0) {
+				if (theBall.y > center) {
+					//tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, 5, TFT_WHITE);
+					//paddleAI.y += theBall.dy;
+					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, 10, WHITE);
+					paddleAI.y += 10;
+					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
+				}
+				else {
+					/*tft.fillRect(paddleAI.x, (paddleAI.y + paddleAI.h), paddleAI.w, 5, TFT_WHITE);*/
+					tft.fillRect(paddleAI.x, paddleAI.y + paddleAI.h - 10, paddleAI.w, 10, WHITE);
+					paddleAI.y -= 10;
+					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
+				}
 			}
-			else {
-				paddleAI.y += theBall.dy;
+			//ball moving up
+			if (theBall.dy < 0) {
+				if (theBall.y < center) {
+					tft.fillRect(paddleAI.x, paddleAI.y + paddleAI.h - 10, paddleAI.w, 10, WHITE);
+					paddleAI.y -= 10;
+					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
+				}
+				else {
+					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, 10, WHITE);
+					paddleAI.y += 10;
+					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
+				}
 			}
-		}
-		//ball moving stright across
-		if (theBall.dy == 0) {
-			if (theBall.y < center) {
-				paddleAI.y -= 5;
-			}
-			else {
-				paddleAI.y += 5;
+			//ball moving stright across
+			if (theBall.dy == 0) {
 			}
 		}
 		//Handle player paddle
 		if (btnAPress) {
-			clearButtons(); 
-			//Ball move down
-			if (paddlePlayer.y >= SCREEN_HEIGHT - paddlePlayer.h) {
-				paddlePlayer.y = SCREEN_HEIGHT - paddlePlayer.h;
+			//Move down
+			clearButtons();
+			if (paddlePlayer.y > SCREEN_HEIGHT - paddlePlayer.h) {
+				paddlePlayer.y = SCREEN_HEIGHT - (paddlePlayer.h);
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
+			}
+			if (paddlePlayer.y < 0) {
+				paddlePlayer.y = 0;
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
 			}
 			else {
-				paddlePlayer.y += 5;
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, 10, WHITE);
+				paddlePlayer.y += 10;
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
 			}
 		}
 		if (btnBPress) {
 			clearButtons();
-			if (paddlePlayer.y <= 0) {
+			//move up
+			if (paddlePlayer.y > SCREEN_HEIGHT - paddlePlayer.h) {
+				paddlePlayer.y = SCREEN_HEIGHT - (paddlePlayer.h);
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
+			}
+			if (paddlePlayer.y < 0) {
 				paddlePlayer.y = 0;
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
 			}
 			else {
-				paddlePlayer.y -= 5;
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y + paddlePlayer.h - 10, paddlePlayer.w, 10, WHITE);
+				paddlePlayer.y -= 10;
+				tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
 			}
 		}
 
 		//Draw stuff
 		tft.startWrite();
-		if ((theBall.x < dashlineX - theBall.w) && (theBall.x > dashlineX + dashlineW)) return 0;
-		else {
-			tft.setAddrWindow(dashlineX, 0, dashlineW, dashlineH);
-
-			for (int16_t i = 0; i < 10; i += 2) {
-				tft.pushColor(TFT_WHITE, dashlineW* dashlineH); // push dash pixels
-				tft.pushColor(TFT_BLACK, dashlineW* dashlineH); // push gap pixels
-			}
-			tft.endWrite();
+		if ((theBall.x < dashlineX - theBall.w) && (theBall.x > dashlineX + dashlineW)) {
+			//Don't draw
 		}
-		tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, 1, TFT_BLACK);
-		tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, 1, TFT_BLACK);
-		tft.fillRect(theBall.x, theBall.y, theBall.w, theBall.h, TFT_BLACK);
+		else {
+			tft.fillRect(dashlineX, dashlineY, dashlineW, dashlineH, BLACK);
+		}
+		if ((theBall.x < paddlePlayer.x - theBall.w) && (theBall.x > paddlePlayer.x + paddlePlayer.w)) {
+			//Don't draw
+		}
+		else {
+			tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, BLACK);
+		}
+		if ((theBall.x < paddleAI.x - theBall.w) && (theBall.x > paddleAI.x + paddleAI.w)) {
+			//Don't draw
+		}
+		else {
+			tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
+		}
+		//tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, TFT_BLACK);
+	/*	tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, TFT_BLACK);*/
+		tft.fillCircle(theBall.x, theBall.y, theBall.w, TFT_BLACK);
+		tft.endWrite(); 
 		//Check for game over
 		if (AIScore >= scoreLimit) {
 			gameContinue = false; 
-			return 0; 
+			int winnings = playerScore * 20;
+			gameOverScreen(winnings, true);
+			return winnings;
 		}
 		else if (playerScore >= scoreLimit) {
 			gameContinue = false;
-			return 0;
+			int winnings = playerScore * 20;
+			gameOverScreen(winnings, true);
+			return winnings;
 		}
-
-		delay(10); 
 		if (btnCPress) {
 			aPlayer.playSound(scButtonC);
 			clearButtons();
 			delay(200);
 			aPlayer.forceStop();
 			gameContinue = false;
-			return 0;
+			int winnings = playerScore * 20;
+			gameOverScreen(winnings, true);
+			return winnings;
 		}
+		delay(20); 
 	}
 	if (btnCPress) {
 		aPlayer.playSound(scButtonC);
@@ -1176,6 +1276,54 @@ int gamePlay::game_pong() {
 	}
 
 }
+
+//int gamePlay::game_pong() {
+//	game_Pong ng_Pong;
+//	bool gameOver = false; 
+//	bool ppMoveUp = false;
+//	bool ppMoveDown = false; 
+//	int screenW = 360;
+//	int screenH = 240;
+//	int gameState = 0;
+//	int paddlePositionPlayer = 120;
+//	int paddlePositionAI = 120;
+//	int scorePlayer = 0;
+//	int scoreAI = 0;
+//	int ballX = screenW / 2;
+//	int ballY = screenH / 2;
+//	int ballSpeedX = 2;
+//	int ballSpeedY = 1;
+//	tft.fillScreen(BLACK);
+//	tft.fillRect(0, round(paddlePositionPlayer), 5, 100, WHITE);
+//	tft.fillRect(310, round(paddlePositionAI), 5, 100, WHITE);
+//	while (!gameOver) {
+//		if (btnAPress) {
+//			clearButtons();
+//			paddlePositionPlayer += 10;
+//			ppMoveUp = true;
+//		}
+//		else if (btnBPress) {
+//			clearButtons();
+//			paddlePositionPlayer -= 10;
+//			ppMoveDown = true; 
+//		}
+//		ng_Pong.drawBall(tft, ballX, ballY, ballSpeedX, ballSpeedY, true);
+//		ng_Pong.drawField(scorePlayer, scoreAI, paddlePositionPlayer, paddlePositionAI, tft, ppMoveDown, ppMoveUp);
+//		ng_Pong.collisionControl(ballY, ballSpeedY, ballX, ballSpeedX, scorePlayer, scoreAI, paddlePositionPlayer, paddlePositionAI);
+//		Serial.write(ballSpeedX);
+//		Serial.write(ballX); 
+//		ng_Pong.drawBall(tft, ballX, ballY, ballSpeedX, ballSpeedY, false);
+//		Serial.write(ballSpeedX);
+//		Serial.write(ballX);
+//		if (scorePlayer == 2 || scoreAI == 2) {
+//			gameOver = true;
+//		}
+//		delay(100);
+//		ppMoveUp = false;
+//		ppMoveDown = false;
+//	}
+//	return 0; 
+//}
 
 void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	char winStr[10];
