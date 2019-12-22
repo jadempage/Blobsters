@@ -22,6 +22,9 @@
 #define PROGMEM
 #endif
 
+#include "AudioFileSourcePROGMEM.h"
+#include "AudioGeneratorWAV.h"
+#include "AudioOutputI2SNoDAC.h"
 /* C:\Dev\Blobsters\resources\Sounds\button_main.wav (05/12/2019 15:51:40)
    StartOffset(h): 00000000, EndOffset(h): 000006D5, Length(h): 000006D6 */
 
@@ -40,31 +43,11 @@ enum soundContext {
 class audio {
 public:
 	void playSound(soundContext sc);
-	void stop();
-	void test();
+	void wavloop();
+	void forceStop();
+	void waitForFinish();
 private:
 
-	const uint8_t c = 261;
-	const uint8_t d = 294;
-	const uint8_t e = 329;
-	const uint8_t f = 349;
-	const uint8_t g = 391;
-	const uint8_t gS = 415;
-	const uint8_t a = 440;
-	const uint8_t aS = 455;
-	const uint8_t b = 466;
-	const uint8_t cH = 523;
-	const uint8_t cSH = 554;
-	const uint8_t dH = 587;
-	const uint8_t dSH = 622;
-	const uint8_t eH = 659;
-	const uint8_t fH = 698;
-	const uint8_t fSH = 740;
-	const uint8_t gH = 784;
-	const uint8_t gSH = 830;
-	const uint8_t aH = 880;
-
-	uint8_t music[3] = { aH, eH, aS };
 
 	const unsigned char se_BtnC[1433] PROGMEM = {
 		0x52, 0x49, 0x46, 0x46, 0x91, 0x05, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,

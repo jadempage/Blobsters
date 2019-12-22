@@ -270,7 +270,6 @@ void gamePlay::showMap(Inventory* curInventory) {
 		if (btnAPress == true) {
 			aPlayer.playSound(scButtonA);
 			clearButtons();
-			delay(500);
 			refloor(12, 192, 112, 224, textX, textY, map_box_tile, 160, 32);
 			curPos = curPos + 1;
 			if (curPos > 2) {
@@ -318,13 +317,13 @@ int gamePlay::gameBoard() {
 	//
 	for (int i = 0; i < 8; i++) {
 		if (i == curPos) {
-			tft.setTextColor(TFT_BLACK, 0x4B8F);
+			tft.setTextColor(TFT_BLACK, 0x92A7);
 		}
 		else {
-			tft.setTextColor(TFT_WHITE, 0x4B8F);
+			tft.setTextColor(TFT_WHITE, 0x92A7);
 		}
 		tft.drawString(gameNames[i], textX, textY);
-		textY = textY + 20;
+		textY = textY + 18;
 	}
 	textY = 30; 
 	while (!btnCPress) {
@@ -339,13 +338,13 @@ int gamePlay::gameBoard() {
 			}
 			for (int i = 0; i < 8; i++) {
 				if (i == curPos) {
-					tft.setTextColor(TFT_BLACK, 0x4B8F);
+					tft.setTextColor(TFT_BLACK, 0x92A7);
 				}
 				else {
-					tft.setTextColor(TFT_WHITE, 0x4B8F);
+					tft.setTextColor(TFT_WHITE, 0x92A7);
 				}
 				tft.drawString(gameNames[i], textX, textY);
-				textY = textY + 20;
+				textY = textY + 18;
 			}
 			textY = 30;
 		}
@@ -777,7 +776,8 @@ int gamePlay::game_highlow() {
 	ng_HiLo.curWinnings = 0;
 	ng_HiLo.roundsPlayed = 0;
 	while (!btnCPress) {
-		aPlayer.playSound(scDrawCard);
+		m5.update();
+		aPlayer.wavloop(); 
 		Serial.write("Doing next round \n"); 
 		aPlayer.wavloop();
 		isAce = false;
@@ -848,7 +848,7 @@ int gamePlay::game_highlow() {
 		char winChar[10]; 
 		itoa(ng_HiLo.curWinnings, winChar, 10);
 		tft.setTextColor(TFT_BLACK, 0x92A7);
-		tft.drawString(winChar, 150, 30);
+		tft.drawString(winChar, 150, 20);
 		if (curCard.theVal == cvAce) {
 			isAce == true;
 		}
@@ -858,8 +858,8 @@ int gamePlay::game_highlow() {
 		isHigher = ng_HiLo.isHigher(&curCard, &nextCard);
 		waitForChoice = true;
 		while (waitForChoice) {
-			m5.update();
-			aPlayer.wavloop(); 
+			//m5.update();
+			//aPlayer.wavloop(); 
 			if (isBlink) {
 				tft.pushImage(130, 120, 64, 64, blue_front, 0xFFFF);
 				isBlink = false;
@@ -892,23 +892,20 @@ int gamePlay::game_highlow() {
 				Serial.write("Card revealed \n"); 
 				if (btnAPress) {
 					aPlayer.playSound(scButtonA);
-					aPlayer.wavloop();
 					clearButtons(); 
 					Serial.write("User guess higher \n");
 					//User guessed higher
 					if (isHigher || isAce) {
 						aPlayer.playSound(scWinGame);
-						aPlayer.wavloop();
 						Serial.write("User win \n");
 						clearButtons();
 						ng_HiLo.curWinnings = ng_HiLo.curWinnings + 10;
 						waitForChoice = false; 
-						delay(2000);
+						delay(1000);
 					}
 					else {
 						//Loser!!!!
 						aPlayer.playSound(scLoseGame);
-						aPlayer.wavloop();
 						Serial.write("Loser \n");
 						clearButtons();
 						delay(2000);
@@ -923,7 +920,6 @@ int gamePlay::game_highlow() {
 					//User guessed lower
 					if (isHigher && !isAce) {
 						aPlayer.playSound(scLoseGame);
-						aPlayer.wavloop();
 						Serial.write("User lose \n");
 						clearButtons();
 						//Loser!!!!
@@ -936,17 +932,19 @@ int gamePlay::game_highlow() {
 						Serial.write("User win \n");
 						clearButtons(); 
 						aPlayer.playSound(scWinGame);
-						aPlayer.wavloop();
 						ng_HiLo.curWinnings = ng_HiLo.curWinnings + 10;
 						waitForChoice = false; 
-						delay(2000);
+						delay(1000);
 					}
 				}
 		}
-	delay(500);
+		delay(500);
 	}
 	ng_HiLo.roundsPlayed++; 
 	Serial.write("Next round"); 
+	aPlayer.playSound(scDrawCard);
+	aPlayer.waitForFinish();
+
 	}
 	if (btnCPress) {
 		aPlayer.playSound(scButtonC);
@@ -1020,6 +1018,8 @@ int gamePlay::game_pong() {
 	tft.drawString("   ", 260, 210);
 
 	while (gameContinue) {
+		m5.update();
+		aPlayer.wavloop(); 
 		sprintf(AIScoreCh, "%d", AIScore);
 		tft.drawString(AIScoreCh, 235, 10);
 		sprintf(PlayerScoreCh, "%d", playerScore);
@@ -1031,6 +1031,8 @@ int gamePlay::game_pong() {
 		theBall.y += theBall.dy;
 		if (theBall.x < 0) {
 			clearButtons(); 
+			aPlayer.playSound(scBallScore);
+			aPlayer.waitForFinish(); 
 			AIScore += 1;
 			tft.setTextSize(4); 
 			tft.setTextColor(ORANGE, TFT_WHITE); 
@@ -1054,6 +1056,8 @@ int gamePlay::game_pong() {
 		}
 		if (theBall.x > SCREEN_WIDTH) {
 			clearButtons();
+			aPlayer.playSound(scBallScore);
+			aPlayer.waitForFinish();
 			playerScore += 1;
 			tft.setTextSize(4);
 			tft.setTextColor(ORANGE, TFT_WHITE);
@@ -1081,6 +1085,7 @@ int gamePlay::game_pong() {
 		int cp = ng_Pong.check_collision(theBall, paddlePlayer);
 		int ca = ng_Pong.check_collision(theBall, paddleAI);
 		if (ca == 1 || cp == 1) {
+			aPlayer.playSound(scBallHit);
 			paddle paddleCurrent;
 			if (ca == 1) {
 				paddleCurrent = paddleAI;
@@ -1238,8 +1243,6 @@ int gamePlay::game_pong() {
 		else {
 			tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
 		}
-		//tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, TFT_BLACK);
-	/*	tft.fillRect(paddlePlayer.x, paddlePlayer.y, paddlePlayer.w, paddlePlayer.h, TFT_BLACK);*/
 		tft.fillCircle(theBall.x, theBall.y, theBall.w, TFT_BLACK);
 		tft.endWrite(); 
 		//Check for game over
@@ -1276,54 +1279,6 @@ int gamePlay::game_pong() {
 	}
 
 }
-
-//int gamePlay::game_pong() {
-//	game_Pong ng_Pong;
-//	bool gameOver = false; 
-//	bool ppMoveUp = false;
-//	bool ppMoveDown = false; 
-//	int screenW = 360;
-//	int screenH = 240;
-//	int gameState = 0;
-//	int paddlePositionPlayer = 120;
-//	int paddlePositionAI = 120;
-//	int scorePlayer = 0;
-//	int scoreAI = 0;
-//	int ballX = screenW / 2;
-//	int ballY = screenH / 2;
-//	int ballSpeedX = 2;
-//	int ballSpeedY = 1;
-//	tft.fillScreen(BLACK);
-//	tft.fillRect(0, round(paddlePositionPlayer), 5, 100, WHITE);
-//	tft.fillRect(310, round(paddlePositionAI), 5, 100, WHITE);
-//	while (!gameOver) {
-//		if (btnAPress) {
-//			clearButtons();
-//			paddlePositionPlayer += 10;
-//			ppMoveUp = true;
-//		}
-//		else if (btnBPress) {
-//			clearButtons();
-//			paddlePositionPlayer -= 10;
-//			ppMoveDown = true; 
-//		}
-//		ng_Pong.drawBall(tft, ballX, ballY, ballSpeedX, ballSpeedY, true);
-//		ng_Pong.drawField(scorePlayer, scoreAI, paddlePositionPlayer, paddlePositionAI, tft, ppMoveDown, ppMoveUp);
-//		ng_Pong.collisionControl(ballY, ballSpeedY, ballX, ballSpeedX, scorePlayer, scoreAI, paddlePositionPlayer, paddlePositionAI);
-//		Serial.write(ballSpeedX);
-//		Serial.write(ballX); 
-//		ng_Pong.drawBall(tft, ballX, ballY, ballSpeedX, ballSpeedY, false);
-//		Serial.write(ballSpeedX);
-//		Serial.write(ballX);
-//		if (scorePlayer == 2 || scoreAI == 2) {
-//			gameOver = true;
-//		}
-//		delay(100);
-//		ppMoveUp = false;
-//		ppMoveDown = false;
-//	}
-//	return 0; 
-//}
 
 void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	char winStr[10];
