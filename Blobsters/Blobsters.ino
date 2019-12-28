@@ -59,7 +59,7 @@
 
 gamePlay theGame;
 unsigned long lastDebounceTime = 0;
-unsigned long debounceDelay = 100;
+unsigned long debounceDelay = 250;
 
 void IRAM_ATTR isra() {
 	if ((millis() - lastDebounceTime) > debounceDelay) {

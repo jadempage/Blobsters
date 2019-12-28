@@ -66,7 +66,4 @@ public:
 class game_Pong {
 public:
 	int check_collision(ball a, paddle b);
-	void drawField(int& score1, int& score2, int& paddlePositionPlayer, int& paddlePositionAI, TFT_eSPI& display, bool ppMoveDown, bool ppMoveUp);
-	void collisionControl(int& ballY, int& ballSpeedY, int& ballX, int& ballSpeedX, int& scorePlayer, int& scoreAI, int& paddlePositionPlayer, int& paddlePositionAI);
-	void drawBall(TFT_eSPI& display, int& ballX, int& ballY, int& ballSpeedX, int& ballSpeedY, bool clear);
 };

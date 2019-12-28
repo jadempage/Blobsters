@@ -10,6 +10,11 @@
 #endif
 #endif
 
+#include <Arduino.h>
+#include <Wire.h>
+#include "math.h"
+#include "bmm150.h"
+#include "bmm150_defs.h"
 #include <FS.h>
 #include <SD.h>
 #include <JPEGDecoder.h>
@@ -47,7 +52,7 @@ public:
 	void timerHandler(Inventory *curInventory);
 	char* mapLocationNames[3] = { "Shop", "Play", "Meet" };
 	char* invLocationNames[2] = { "Items", "Food" };
-	char* gameNames[8] = { "HiLo", "Pong", "Game3", "Game4", "Game5", "Game6", "Game7", "Game8", };
+	char* gameNames[8] = { "HiLo", "Pong", "Treasure", "Game4", "Game5", "Game6", "Game7", "Game8", };
 	bool btnAPress;
 	bool btnBPress;
 	bool btnCPress;
@@ -60,15 +65,17 @@ public:
 	char* findInFile(String toFind, String fString);
 	int game_highlow();
 	int game_pong();
+	int game_treasure(); 
 	void gameOverScreen(int winnings, bool didWin);
-	void drawSdJpeg(const char* filename, int xpos, int ypos);
-	void jpegRender(int xpos, int ypos);
 	int noInterrupts = 0; 
 	int hungerInterrupts = 0;
 	int happinessInterrupts = 0;
 	int ageInterrupts = 0; 
 	int saveInterrupts = 0; 
 	bool checkInterrupts;
+	bool BMM150CalDone = false; 
+	bool BMM150InitDone = false; 
+
 
 	struct curChar {
 		char name[20]; 

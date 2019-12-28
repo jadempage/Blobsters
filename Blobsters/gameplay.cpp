@@ -19,9 +19,7 @@
 4) Have shop change on timer, not reset 
 5) Add shop stock to save
 6) Add age to save
-7) Fix button bounce - DONE
-8) Add coins to summary screen
-9) HiLo sound system is a bit shit
+7) Save cal data 
 10) HiLo seems to give wrong answers
 
 MG Ideas:
@@ -40,8 +38,10 @@ MG Ideas:
 TFT_eSPI tft = TFT_eSPI();
 foodItem foodListC[FOOD_QTY];
 audio aPlayer;
-
-
+bmm150_mag_data mag_offset;
+bmm150_mag_data mag_max;
+bmm150_mag_data mag_min;
+struct bmm150_dev dev;
 
 void gamePlay::idleLoop(Inventory* curInventory)
 {
@@ -220,6 +220,8 @@ void gamePlay::showShop(Inventory* curInventory) {
 void gamePlay::showStats(Inventory* curInventory) {
 	m5.Lcd.drawPngFile(SD, "/bg/summ.png", 0, 0);
 	char str[2];
+	char monStr[10];
+	itoa(curInventory->currentMoney, monStr, 10);
 	int x = 82;
 	int y = 115;
 	for (int i = 0; i < cChar.fullness; i++) {
@@ -232,9 +234,11 @@ void gamePlay::showStats(Inventory* curInventory) {
 		tft.fillRect(x, y, 16, 12, TFT_RED);
 		x = x + 16;
 	}
-	tft.setTextSize(6);
+	tft.setTextSize(4);
 	tft.setTextColor(TFT_BLACK, TFT_WHITE);
 	tft.drawString(cChar.name, 90, 25); 
+	tft.setTextSize(6);
+	tft.drawString(monStr, 80, 165); 
 	while (!btnCPress) {
 		m5.update();
 		aPlayer.wavloop();
@@ -353,16 +357,18 @@ int gamePlay::gameBoard() {
 			clearButtons();
 			delay(500); 
 			if (strcmp(gameNames[curPos], "HiLo") == 0) {
-				aPlayer.forceStop(); 
 				curWinnings = game_highlow();
 				return curWinnings;
 			}
 			else if (strcmp(gameNames[curPos], "Pong") == 0) {
-				aPlayer.forceStop();
 				curWinnings = game_pong();
 				return curWinnings;
 			}
-			else if (strcmp(gameNames[curPos], "Game3") == 0) {
+			else if (strcmp(gameNames[curPos], "Treasure") == 0) {
+				curWinnings = game_treasure();
+				return curWinnings;
+			}
+			else if (strcmp(gameNames[curPos], "4") == 0) {
 				//DO THE GAME
 			}
 
@@ -1280,6 +1286,197 @@ int gamePlay::game_pong() {
 
 }
 
+//Ugly loose methods but they won't work if I put them in their own class and IDK why so 
+
+int8_t i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t* read_data, uint16_t len)
+{
+	if (M5.I2C.readBytes(dev_id, reg_addr, len, read_data))
+	{
+		return BMM150_OK;
+	}
+	else
+	{
+		return BMM150_E_DEV_NOT_FOUND;
+	}
+}
+
+int8_t i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t* read_data, uint16_t len)
+{
+	if (M5.I2C.writeBytes(dev_id, reg_addr, read_data, len))
+	{
+		return BMM150_OK;
+	}
+	else
+	{
+		return BMM150_E_DEV_NOT_FOUND;
+	}
+}
+
+bool initBMM150()
+{
+	Wire.begin(21, 22, 400000);
+	int8_t rslt = BMM150_OK;
+	/* Sensor interface over SPI with native chip select line */
+	dev.dev_id = 0x10;
+	dev.intf = BMM150_I2C_INTF;
+	dev.delay_ms = delay;
+	dev.read = i2c_read;
+	dev.write = i2c_write;
+	/* make sure max < mag data first  */
+	mag_max.x = -2000;
+	mag_max.y = -2000;
+	mag_max.z = -2000;
+
+	/* make sure min > mag data first  */
+	mag_min.x = 2000;
+	mag_min.y = 2000;
+	mag_min.z = 2000;
+
+	rslt = bmm150_init(&dev);
+	dev.settings.pwr_mode = BMM150_NORMAL_MODE;
+	rslt |= bmm150_set_op_mode(&dev);
+	dev.settings.preset_mode = BMM150_PRESETMODE_ENHANCED;
+	rslt |= bmm150_set_presetmode(&dev);
+	DUMP(rslt);
+	return true;
+}
+
+bool calibrateBMM150()
+{
+	uint32_t calibrate_timeout = 0;
+	uint32_t calibrate_time = 10000;
+	calibrate_timeout = millis() + calibrate_time;
+	Serial.printf("Go calibrate, use %d ms \r\n", calibrate_time);
+	Serial.printf("running ...");
+
+	while (calibrate_timeout > millis())
+	{
+		bmm150_read_mag_data(&dev);
+		if (dev.data.x)
+		{
+			mag_min.x = (dev.data.x < mag_min.x) ? dev.data.x : mag_min.x;
+			mag_max.x = (dev.data.x > mag_max.x) ? dev.data.x : mag_max.x;
+		}
+
+		if (dev.data.y)
+		{
+			mag_max.y = (dev.data.y > mag_max.y) ? dev.data.y : mag_max.y;
+			mag_min.y = (dev.data.y < mag_min.y) ? dev.data.y : mag_min.y;
+		}
+
+		if (dev.data.z)
+		{
+			mag_min.z = (dev.data.z < mag_min.z) ? dev.data.z : mag_min.z;
+			mag_max.z = (dev.data.z > mag_max.z) ? dev.data.z : mag_max.z;
+		}
+		delay(100);
+	}
+
+	mag_offset.x = (mag_max.x + mag_min.x) / 2;
+	mag_offset.y = (mag_max.y + mag_min.y) / 2;
+	mag_offset.z = (mag_max.z + mag_min.z) / 2;
+	DUMP(dev.data.x);
+	DUMP(dev.data.y);
+	DUMP(dev.data.z);
+	Serial.printf("\n calibrate finish ... \r\n");
+	Serial.printf("mag_max.x: %.2f x_min: %.2f \t", mag_max.x, mag_min.x);
+	Serial.printf("y_max: %.2f y_min: %.2f \t", mag_max.y, mag_min.y);
+	Serial.printf("z_max: %.2f z_min: %.2f \r\n", mag_max.z, mag_min.z);
+	//bmm150_offset_save();
+	return true;
+}
+
+float getBMM150Data()
+{
+	/*M5.update();*/
+	bmm150_read_mag_data(&dev);
+	DUMP(dev.data.x);
+	DUMP(dev.data.y);
+	DUMP(dev.data.z);
+	float head_dir = atan2(dev.data.x - mag_offset.x, dev.data.y - mag_offset.y) * 180.0 / M_PI;
+	Serial.printf("Magnetometer data, heading %.2f\n", head_dir);
+	Serial.printf("MAG X : %.2f \t MAG Y : %.2f \t MAG Z : %.2f \n", dev.data.x, dev.data.y, dev.data.z);
+	Serial.printf("MID X : %.2f \t MID Y : %.2f \t MID Z : %.2f \n", mag_offset.x, mag_offset.y, mag_offset.z);
+	return head_dir;
+}
+
+//End of ugliness
+
+int gamePlay::game_treasure(){
+	int goalHeading;
+	int bombHeadings[5];
+	float curHeading; 
+	bool gameContinue = true; 
+	int rng;
+	int goalX = 0;
+	int goalY = 0; 
+	int curX = 0;
+	int curY = 0; 
+	char goalHeadingStr[10];
+	char curHeadingStr[10];
+	tft.fillScreen(TFT_WHITE);
+	tft.setTextSize(2);
+	tft.setTextColor(BLACK, WHITE); 
+	if (!BMM150InitDone) {
+		initBMM150();
+		BMM150InitDone = true; 
+	}
+	//if (!BMM150CalDone) {
+	//	calibrateBMM150();
+	//	BMM150CalDone = true;
+	//}
+	tft.fillCircle(160, 120, 100, TFT_BLACK);
+	tft.drawCircle(160, 120, 100, TFT_GREEN);
+	tft.drawCircle(160, 120, 70, TFT_GREEN);
+	tft.drawCircle(160, 120, 40, TFT_GREEN);
+	tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
+	tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
+	delay(5000);
+	m5.update();
+		goalHeading = (rand() % 360) + 1;
+		sprintf(goalHeadingStr, "%d", goalHeading);
+		tft.drawString(goalHeadingStr, 10, 10);
+		goalX = 100 * sin(goalHeading);
+		goalY = 100 * cos(goalHeading);
+		tft.fillCircle(goalX, goalY, 20, RED);
+		DUMP(curHeading);
+		DUMP(goalHeading);
+		while (gameContinue) {
+			sprintf(curHeadingStr, "%f", getBMM150Data());
+			tft.drawString(curHeadingStr, 10, 30);
+			curX = 100 * sin(curHeading);
+			curY = 100 * cos(curHeading);
+			tft.drawLine(curX, curY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, PINK); 
+			delay(500); 
+
+
+
+
+			if (btnCPress) {
+				aPlayer.playSound(scButtonC);
+				clearButtons();
+				gameContinue = false; 
+				delay(200);
+				aPlayer.forceStop();
+				return 0;
+			}
+		}
+		if (btnCPress) {
+			aPlayer.playSound(scButtonC);
+			clearButtons();
+			gameContinue = false;
+			delay(200);
+			aPlayer.forceStop();
+			return 0;
+		}
+		return 0;
+	}
+	//else {
+	//	tft.drawString("No Treasure Found :( ", 120, 280);
+	//	gameContinue = false;
+	//}
+	
+
 void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	char winStr[10];
 	bool isCheer = false; 
@@ -1312,3 +1509,5 @@ void gamePlay::gameOverScreen(int winnings, bool didWin) {
 		return;
 	}
 }
+
+
