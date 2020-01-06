@@ -12,15 +12,13 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include "Preferences.h"
 #include "math.h"
 #include "bmm150.h"
 #include "bmm150_defs.h"
 #include <FS.h>
 #include <SD.h>
-#include <JPEGDecoder.h>
-//#include <TFT_eSPI.h>
 #include <M5Stack.h>
-//#include <SPI.h>
 #include "audio.h"
 #include "minigameHelper.h"
 #include <ArduinoTrace.h>
@@ -67,6 +65,7 @@ public:
 	int game_pong();
 	int game_treasure(); 
 	void gameOverScreen(int winnings, bool didWin);
+	bool inRange(int low, int high, int x);
 	int noInterrupts = 0; 
 	int hungerInterrupts = 0;
 	int happinessInterrupts = 0;

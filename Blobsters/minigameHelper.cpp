@@ -5,6 +5,11 @@
 #include "minigameHelper.h"
 #include "gameplay.h"
 
+#define SAME_SIGNS( a, b )	\
+		(((long) ((unsigned long) a ^ (unsigned long) b)) >= 0 )
+
+#define SCREEN_WIDTH 320	//window height
+#define SCREEN_HEIGHT 240	//window width
 
 std::vector<singleCard> game_HiLo::generateVDeck() {
 	static std::vector<singleCard> newDeck;
@@ -105,5 +110,214 @@ int game_Pong::check_collision(ball a, paddle b)
 	return 1;
 }
 
+int game_Treasure::lines_intersect(/* First line segment */  long x1, long y1, long x2, long y2, /* Second line segment */ long x3, long y3, long x4, long y4)
+//AUTHOR: Mukesh Prasad
+	{
+	long a1, a2, b1, b2, c1, c2; /* Coefficients of line eqns. */
+	long r1, r2, r3, r4;         /* 'Sign' values */
+	long denom, offset, num;     /* Intermediate values */
+
+	/* Compute a1, b1, c1, where line joining points 1 and 2
+	 * is "a1 x  +  b1 y  +  c1  =  0".
+	 */
+	int toRet = 0; 
+	long x = 0;
+	long y = 0; 
+	a1 = y2 - y1;
+	b1 = x1 - x2;
+	c1 = x2 * y1 - x1 * y2;
+
+	/* Compute r3 and r4.
+	 */
 
 
+	r3 = a1 * x3 + b1 * y3 + c1;
+	r4 = a1 * x4 + b1 * y4 + c1;
+
+	/* Check signs of r3 and r4.  If both point 3 and point 4 lie on
+	 * same side of line 1, the line segments do not intersect.
+	 */
+
+	if (r3 != 0 &&
+		r4 != 0 &&
+		SAME_SIGNS(r3, r4)) {
+		Serial.println("RET AT 1");
+		return (0);
+	}
+
+	
+	/* Compute a2, b2, c2 */
+
+	a2 = y4 - y3;
+	b2 = x3 - x4;
+	c2 = x4 * y3 - x3 * y4;
+
+	/* Compute r1 and r2 */
+
+	r1 = a2 * x1 + b2 * y1 + c2;
+	r2 = a2 * x2 + b2 * y2 + c2;
+
+	/* Check signs of r1 and r2.  If both point 1 and point 2 lie
+	 * on same side of second line segment, the line segments do
+	 * not intersect.
+	 */
+
+	if (r1 != 0 &&
+		r2 != 0 &&
+		SAME_SIGNS(r1, r2)) {
+		Serial.println("RET AT 2");
+		return (0);
+	}
+
+
+	/* Line segments intersect: compute intersection point.
+	 */
+
+	denom = a1 * b2 - a2 * b1;
+	if (denom == 0){
+		Serial.println("RET AT 3");
+		return (0); }
+	offset = denom < 0 ? -denom / 2 : denom / 2;
+
+	/* The denom/2 is to get rounding instead of truncating.  It
+	 * is added or subtracted to the numerator, depending upon the
+	 * sign of the numerator.
+	 */
+
+	num = b1 * c2 - b2 * c1;
+	x = (num < 0 ? num - offset : num + offset) / denom;
+
+	num = a2 * c1 - a1 * c2;
+	y = (num < 0 ? num - offset : num + offset) / denom;
+
+	if (!y > 0) {
+		Serial.printf(" NO Y ");
+		return 0;
+	}
+	if (!x > 0) {
+		Serial.printf(" NO X ");
+		return 0; 
+	}
+	DUMP(y);
+	DUMP(x); 
+	Serial.printf(" X INTER %d", x); 
+	Serial.printf(" Y INTER %d", y);
+
+	return (1);
+} /* lines_intersect */
+
+boundingBox game_Treasure::getBoundingBox(int x, int y)
+{
+	boundingBox theBox;
+	rLine line1;
+	rLine line2;
+	rLine line3;
+	rLine line4;
+	line1.x0 = x;
+	line1.x1 = x + 20;
+	line1.y0 = y;
+	line1.y1 = y;
+	line2.x0 = x + 20;
+	line2.x1 = x + 20;
+	line2.y0 = y;
+	line2.y1 = y + 20;
+	line3.x0 = x + 20;
+	line3.x1 = x;
+	line3.y1 = x + 20;
+	line3.y0 = x + 20;
+	line4.x0 = x;
+	line4.x1 = x;
+	line4.y0 = y + 20;
+	line4.y1 = y;
+
+	theBox.rLine1 = line1;
+	theBox.rLine2 = line2;
+	theBox.rLine3 = line3;
+	theBox.rLine4 = line4; 
+	return theBox;
+}
+
+bool game_Treasure::checkIntersection(int goalX, int goalY, boundingBox box)
+{
+	bool isInter = false;
+
+	if ((lines_intersect(goalX, goalY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, box.rLine1.x0, box.rLine1.y0, box.rLine1.x1, box.rLine1.y1)) == 1) {
+		isInter = true;
+	}
+	if ((lines_intersect(goalX, goalY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, box.rLine2.x0, box.rLine2.y0, box.rLine2.x1, box.rLine2.y1)) == 1) {
+		isInter = true;
+	}
+	if ((lines_intersect(goalX, goalY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, box.rLine3.x0, box.rLine3.y0, box.rLine3.x1, box.rLine3.y1)) == 1) {
+		isInter = true;
+	}
+	if ((lines_intersect(goalX, goalY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, box.rLine4.x0, box.rLine4.y0, box.rLine4.x1, box.rLine4.y1)) == 1) {
+		isInter = true;
+	}
+
+	return isInter;
+}
+
+coords* game_Treasure::getBombHeadings(int noBombs, int tresX, int tresY)
+{
+	coords curBombs[5];
+	coords curTreasure;
+	coords curBomb;
+	coords curCompBomb;
+	int width = 20;
+	int height = 20; 
+	int radius = 100; 
+	int curX;
+	int curY; 
+	bool coordsOk = false; 
+	curTreasure.x = tresX;
+	curTreasure.y = tresY; 
+	for (int i = 0; i < noBombs; i++) {
+		coordsOk = false;
+		while (!coordsOk) {
+			curX = (rand() % 100) + 1;// +radius;
+			curY = (rand() % 100) + 1;// +radius;
+			curBomb.x = curX + radius;
+			curBomb.y = curY + radius;
+			if (!rectOverlap(curTreasure, curBomb)) {
+				coordsOk = true;
+				for (int j = i; j > 0; j--) {
+					curCompBomb.x = curBombs[j].x;
+					curCompBomb.y = curBombs[j].y;
+					if (rectOverlap(curBomb, curCompBomb)) {
+						coordsOk = false;
+					}
+				}
+			}
+			if (coordsOk) {
+				curBombs[i] = curBomb;
+				Serial.printf("Generated %d bomb at %d , %d \n", i, curBomb.x, curBomb.y); 
+			}
+		}
+	}
+	//return curBombs; 
+}
+
+//bool game_Treasure::inRange(int low, int high, int x)
+//{
+//	return ((x - high) * (x - low) <= 0);
+//}
+
+bool game_Treasure::valueInRange(int value, int min, int max)
+{
+	return (value >= min) && (value <= max);
+}
+
+bool game_Treasure::rectOverlap(coords A, coords B)
+{
+	int width = 20;
+	int height = 20; 
+	bool xOverlap = valueInRange(A.x, B.x, B.x + width) ||
+		valueInRange(B.x, A.x, A.x + width);
+
+	bool yOverlap = valueInRange(A.y, B.y, B.y + height) ||
+		valueInRange(B.y, A.y, A.y + height);
+
+	DUMP(xOverlap);
+	DUMP(yOverlap); 
+	return xOverlap && yOverlap;
+}

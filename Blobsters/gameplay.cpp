@@ -12,6 +12,7 @@
 #define SCREEN_WIDTH 320	//window height
 #define SCREEN_HEIGHT 240	//window width
 
+
 /* To do:
 1) Handle fridge showing multiple pages
 2) Make fridge "Sold out" thing not look shit (Mostly fixed, still leftover "max size" errors and only first one gets new ico 
@@ -42,6 +43,7 @@ bmm150_mag_data mag_offset;
 bmm150_mag_data mag_max;
 bmm150_mag_data mag_min;
 struct bmm150_dev dev;
+Preferences prefs;
 
 void gamePlay::idleLoop(Inventory* curInventory)
 {
@@ -1312,16 +1314,38 @@ int8_t i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t* read_data, uint16_t 
 	}
 }
 
+void bmm150_offset_save()
+{
+	prefs.begin("bmm150", false);
+	prefs.putBytes("offset", (uint8_t*)&mag_offset, sizeof(bmm150_mag_data));
+	prefs.end();
+}
+
+void bmm150_offset_load()
+{
+	if (prefs.begin("bmm150", true))
+	{
+		prefs.getBytes("offset", (uint8_t*)&mag_offset, sizeof(bmm150_mag_data));
+		prefs.end();
+		Serial.printf("bmm150 load offset finish.... \r\n");
+	}
+	else
+	{
+		Serial.printf("bmm150 load offset failed.... \r\n");
+	}
+}
+
 bool initBMM150()
 {
-	Wire.begin(21, 22, 400000);
 	int8_t rslt = BMM150_OK;
+	bmm150_offset_load();
 	/* Sensor interface over SPI with native chip select line */
 	dev.dev_id = 0x10;
 	dev.intf = BMM150_I2C_INTF;
-	dev.delay_ms = delay;
 	dev.read = i2c_read;
 	dev.write = i2c_write;
+	dev.delay_ms = delay;
+
 	/* make sure max < mag data first  */
 	mag_max.x = -2000;
 	mag_max.y = -2000;
@@ -1337,7 +1361,6 @@ bool initBMM150()
 	rslt |= bmm150_set_op_mode(&dev);
 	dev.settings.preset_mode = BMM150_PRESETMODE_ENHANCED;
 	rslt |= bmm150_set_presetmode(&dev);
-	DUMP(rslt);
 	return true;
 }
 
@@ -1382,38 +1405,61 @@ bool calibrateBMM150()
 	Serial.printf("mag_max.x: %.2f x_min: %.2f \t", mag_max.x, mag_min.x);
 	Serial.printf("y_max: %.2f y_min: %.2f \t", mag_max.y, mag_min.y);
 	Serial.printf("z_max: %.2f z_min: %.2f \r\n", mag_max.z, mag_min.z);
-	//bmm150_offset_save();
+	bmm150_offset_save();
 	return true;
 }
 
 float getBMM150Data()
 {
-	/*M5.update();*/
+	M5.update();
 	bmm150_read_mag_data(&dev);
-	DUMP(dev.data.x);
-	DUMP(dev.data.y);
-	DUMP(dev.data.z);
-	float head_dir = atan2(dev.data.x - mag_offset.x, dev.data.y - mag_offset.y) * 180.0 / M_PI;
-	Serial.printf("Magnetometer data, heading %.2f\n", head_dir);
-	Serial.printf("MAG X : %.2f \t MAG Y : %.2f \t MAG Z : %.2f \n", dev.data.x, dev.data.y, dev.data.z);
-	Serial.printf("MID X : %.2f \t MID Y : %.2f \t MID Z : %.2f \n", mag_offset.x, mag_offset.y, mag_offset.z);
-	return head_dir;
+	double valX, valY, valZ;
+	valX = dev.data.x;
+	valY = dev.data.y;
+	valZ = dev.data.z;
+
+	float xyHeading = atan2(valX, valY);
+	float zxHeading = atan2(valZ, valX);
+	float heading = xyHeading;
+
+	if (heading < 0)
+		heading += 2 * PI;
+	if (heading > 2 * PI)
+		heading -= 2 * PI;
+	float headingDegrees = heading * 180 / M_PI;
+	float xyHeadingDegrees = xyHeading * 180 / M_PI;
+	float zxHeadingDegrees = zxHeading * 180 / M_PI;
+
+	Serial.print("Heading: ");
+	Serial.println(headingDegrees);
+
+	return headingDegrees;
 }
 
 //End of ugliness
 
 int gamePlay::game_treasure(){
-	int goalHeading;
-	int bombHeadings[5];
+	game_Treasure ng_Treasure;
+	bool isIntersecting; 
+	boundingBox treasureBounds;
+	uint16_t transparent = 0xFFFF;
+	double origX = 160;
+	double origY = 120;
+	double goalHeading;
+	coords * bombHeadings;
 	float curHeading; 
 	bool gameContinue = true; 
-	int rng;
-	int goalX = 0;
-	int goalY = 0; 
-	int curX = 0;
-	int curY = 0; 
-	char goalHeadingStr[10];
-	char curHeadingStr[10];
+	double curX;
+	bool getNextLevel; 
+	double curY;
+	double goalX;
+	double goalY; 
+	double radius = 100;
+	double sinres;
+	double cosres;
+	int playerScore = 0;
+	int curLevel = 5;
+
 	tft.fillScreen(TFT_WHITE);
 	tft.setTextSize(2);
 	tft.setTextColor(BLACK, WHITE); 
@@ -1421,45 +1467,89 @@ int gamePlay::game_treasure(){
 		initBMM150();
 		BMM150InitDone = true; 
 	}
-	//if (!BMM150CalDone) {
-	//	calibrateBMM150();
-	//	BMM150CalDone = true;
-	//}
-	tft.fillCircle(160, 120, 100, TFT_BLACK);
-	tft.drawCircle(160, 120, 100, TFT_GREEN);
-	tft.drawCircle(160, 120, 70, TFT_GREEN);
-	tft.drawCircle(160, 120, 40, TFT_GREEN);
-	tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
-	tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
-	delay(5000);
-	m5.update();
-		goalHeading = (rand() % 360) + 1;
-		sprintf(goalHeadingStr, "%d", goalHeading);
-		tft.drawString(goalHeadingStr, 10, 10);
-		goalX = 100 * sin(goalHeading);
-		goalY = 100 * cos(goalHeading);
-		tft.fillCircle(goalX, goalY, 20, RED);
-		DUMP(curHeading);
-		DUMP(goalHeading);
 		while (gameContinue) {
-			sprintf(curHeadingStr, "%f", getBMM150Data());
-			tft.drawString(curHeadingStr, 10, 30);
-			curX = 100 * sin(curHeading);
-			curY = 100 * cos(curHeading);
-			tft.drawLine(curX, curY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, PINK); 
+			if (getNextLevel) {
+				tft.fillCircle(160, 120, radius, TFT_BLACK);
+				tft.drawCircle(160, 120, radius, TFT_GREEN);
+				tft.drawCircle(160, 120, radius - 30, TFT_GREEN);
+				tft.drawCircle(160, 120, radius - 60, TFT_GREEN);
+				tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
+				tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
+				m5.update();
+				goalX = (rand() % 100) + 1;// +radius;
+				goalY = (rand() % 100) + 1;// +radius;
+				goalX += radius;
+				goalY += radius; 
+				treasureBounds = ng_Treasure.getBoundingBox(goalX, goalY); 
+
+				bombHeadings = ng_Treasure.getBombHeadings(5, goalX, goalY); 
+
+				tft.setSwapBytes(true);
+				tft.pushImage(goalX, goalY, 20, 20, treasure1, transparent);
+
+				for (int i = 0; i < curLevel; i++) {
+					int xCord = bombHeadings[i].x;
+					DUMP(xCord);
+					int yCord = bombHeadings[i].y;
+					DUMP(yCord); 
+					tft.pushImage(xCord, yCord, 20, 20, bomb, transparent);
+				}
+
+				tft.setTextColor(ORANGE, TFT_WHITE);
+				tft.drawString("3", 0, 0);
+				delay(1000);
+				tft.drawString("2", 0, 0);
+				delay(1000);
+				tft.drawString("1", 0, 0);
+				delay(1000);
+				getNextLevel = false; 
+
+			}
+			curHeading = getBMM150Data();
+			sinres = sin(curHeading);
+			cosres = cos(curHeading);
+			sinres = sinres * radius;
+			cosres = cosres * radius; 
+			curX = origX + cosres;
+			curY = origY + sinres; 
+			M5.Lcd.drawLine(curX, curY, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, TFT_RED);
 			delay(500); 
+			M5.Lcd.drawLine(curX, curY, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, TFT_BLACK);
+			tft.drawCircle(160, 120, radius, TFT_GREEN);
+			tft.drawCircle(160, 120, radius - 30, TFT_GREEN);
+			tft.drawCircle(160, 120, radius - 60, TFT_GREEN);
+			tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
+			tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
+			if (btnAPress) {
+				clearButtons(); 
+				isIntersecting = ng_Treasure.checkIntersection(curX, curY, treasureBounds);
+				if (isIntersecting == true) {
+					getNextLevel = true;
+					isIntersecting = false;
+					//Happy noise
+					//Next level
+					//++ score
+					
+				}
+				else if (isIntersecting != true) {
+					int winnings = playerScore * 20;
+					gameOverScreen(winnings, true);
+					return winnings;
+					//Sad noise
+					//U suck
+					//Game over
+				}
 
 
 
-
+			}
 			if (btnCPress) {
 				aPlayer.playSound(scButtonC);
 				clearButtons();
 				gameContinue = false; 
 				delay(200);
-				aPlayer.forceStop();
-				return 0;
-			}
+				aPlayer.forceStop();  
+  			}
 		}
 		if (btnCPress) {
 			aPlayer.playSound(scButtonC);
@@ -1471,10 +1561,6 @@ int gamePlay::game_treasure(){
 		}
 		return 0;
 	}
-	//else {
-	//	tft.drawString("No Treasure Found :( ", 120, 280);
-	//	gameContinue = false;
-	//}
 	
 
 void gamePlay::gameOverScreen(int winnings, bool didWin) {
@@ -1510,4 +1596,7 @@ void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	}
 }
 
-
+//bool gamePlay::inRange(int low, int high, int x)
+//{
+//	return ((x - high) * (x - low) <= 0);
+//}
