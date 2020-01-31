@@ -257,44 +257,54 @@ bool game_Treasure::checkIntersection(int goalX, int goalY, boundingBox box)
 	return isInter;
 }
 
-coords* game_Treasure::getBombHeadings(int noBombs, int tresX, int tresY)
-{
-	coords curBombs[5];
-	coords curTreasure;
+coords game_Treasure::getBomb(int tresX, int tresY) {
+	bool coordsOk = false;
 	coords curBomb;
+	coords curTreasure;
 	coords curCompBomb;
 	int width = 20;
-	int height = 20; 
-	int radius = 100; 
+	int height = 20;
+	int radius = 100;
 	int curX;
-	int curY; 
-	bool coordsOk = false; 
+	int curY;
 	curTreasure.x = tresX;
-	curTreasure.y = tresY; 
-	for (int i = 0; i < noBombs; i++) {
-		coordsOk = false;
-		while (!coordsOk) {
-			curX = (rand() % 100) + 1;// +radius;
-			curY = (rand() % 100) + 1;// +radius;
-			curBomb.x = curX + radius;
-			curBomb.y = curY + radius;
-			if (!rectOverlap(curTreasure, curBomb)) {
-				coordsOk = true;
-				for (int j = i; j > 0; j--) {
-					curCompBomb.x = curBombs[j].x;
-					curCompBomb.y = curBombs[j].y;
-					if (rectOverlap(curBomb, curCompBomb)) {
-						coordsOk = false;
-					}
+	curTreasure.y = tresY;
+	while (!coordsOk) {
+		curX = (rand() % 100) + 1;// +radius;
+		curY = (rand() % 100) + 1;// +radius;
+		curBomb.x = curX + radius;
+		curBomb.y = curY + radius;
+		if (!rectOverlap(curTreasure, curBomb)) {
+			coordsOk = true;
+			for (int i = 0; i < internalBombs.size(); i++) {
+				curCompBomb.x = internalBombs[i].x;
+				Serial.printf("Getting overlap for bomb %d \n", i);
+				curCompBomb.y = internalBombs[i].y;
+				if (rectOverlap(curBomb, curCompBomb)) {
+					coordsOk = false;
 				}
 			}
-			if (coordsOk) {
-				curBombs[i] = curBomb;
-				Serial.printf("Generated %d bomb at %d , %d \n", i, curBomb.x, curBomb.y); 
-			}
+		}
+		if (coordsOk) {
+			internalBombs.push_back(curBomb); 
+			Serial.printf("Generated %d bomb at %d , %d \n", internalBombs.size(), curBomb.x, curBomb.y);
 		}
 	}
-	//return curBombs; 
+}
+
+std::vector<coords> game_Treasure::getBombHeadings(int noBombs, int tresX, int tresY)
+{
+	coords printBomb;
+	internalBombs.clear();
+	internalBombs.reserve(5);
+	for (int i = 0; i < noBombs; i++) {
+		printBomb = getBomb(tresX, tresY);
+		Serial.printf("printBomb %d bomb at %d , %d \n", i, printBomb.x, printBomb.y);
+	}
+	for (int i = 0; i < internalBombs.size(); i++) {
+		Serial.write("Bomb cycle \n"); 
+	}
+	return internalBombs;
 }
 
 //bool game_Treasure::inRange(int low, int high, int x)
@@ -320,4 +330,23 @@ bool game_Treasure::rectOverlap(coords A, coords B)
 	DUMP(xOverlap);
 	DUMP(yOverlap); 
 	return xOverlap && yOverlap;
+}
+
+apple game_Fruit::generateApple()
+{
+	//Generate random Y between 0 and YMAX
+	//Decide if golden (1/10 chance)
+	int goldChance = (rand() % 10) + 1;
+	int yPos = (rand() % SCREEN_WIDTH) + 1;
+	apple newApple;
+	if (goldChance == 1) {
+		newApple.isGold = true;
+	}
+	else {
+		newApple.isGold = false;
+	}
+	newApple.y = yPos;
+	newApple.x = 0; 
+	newApple.onScreen = true;
+	return newApple;
 }

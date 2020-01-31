@@ -89,10 +89,22 @@ public:
 		long x3, long y3,   /* Second line segment */
 		long x4, long y4
 	);
+	std::vector<coords> internalBombs; 
 	boundingBox getBoundingBox(int x, int y);
 	bool checkIntersection(int goalX, int goalY, boundingBox box);
-	coords * getBombHeadings(int noBombs, int tresX, int tresY);
+	coords getBomb(int tresX, int tresY);
+	std::vector<coords> getBombHeadings(int noBombs, int tresX, int tresY);
 	bool valueInRange(int value, int min, int max);
 	bool rectOverlap(coords A, coords B);
-	bool inRange(int low, int high, int x);
+};
+
+struct apple {
+	int x, y;
+	bool isGold;
+	bool onScreen;
+};
+
+class game_Fruit {
+public:
+	apple generateApple();
 };

@@ -17,6 +17,7 @@ void audio::playSound(soundContext sc) {
 		case scDrawCard: file = new AudioFileSourcePROGMEM(se_CardPlace, sizeof(se_CardPlace)); break;
 		case scBallHit: file = new AudioFileSourcePROGMEM(se_BallHit, sizeof(se_BallHit)); break;
 		case scBallScore: file = new AudioFileSourcePROGMEM(se_BallScore, sizeof(se_BallScore)); break;
+		case scBombExplode: file = new AudioFileSourcePROGMEM(se_BombExplode, sizeof(se_BombExplode)); break;
 	}
 	/*file = new AudioFileSourcePROGMEM(af_btnPress, sizeof(af_btnPress));*/
 	out = new AudioOutputI2S(0, 1); // Output to builtInDAC

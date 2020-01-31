@@ -25,6 +25,8 @@
 #include "food.h"
 #include "Item.h"
 #include "Inventory.h"
+#include "utility/MPU9250.h"
+
 #define FOOD_QTY 6
 #define FRIDGE_QTY 10
 #define FRIDGE_PAGES 3 
@@ -50,7 +52,7 @@ public:
 	void timerHandler(Inventory *curInventory);
 	char* mapLocationNames[3] = { "Shop", "Play", "Meet" };
 	char* invLocationNames[2] = { "Items", "Food" };
-	char* gameNames[8] = { "HiLo", "Pong", "Treasure", "Game4", "Game5", "Game6", "Game7", "Game8", };
+	char* gameNames[8] = { "HiLo", "Pong", "Treasure", "Fruit Catcher", "Game5", "Game6", "Game7", "Game8", };
 	bool btnAPress;
 	bool btnBPress;
 	bool btnCPress;
@@ -63,7 +65,9 @@ public:
 	char* findInFile(String toFind, String fString);
 	int game_highlow();
 	int game_pong();
-	int game_treasure(); 
+	int game_treasure();
+	int game_fruit();
+
 	void gameOverScreen(int winnings, bool didWin);
 	bool inRange(int low, int high, int x);
 	int noInterrupts = 0; 
@@ -74,7 +78,7 @@ public:
 	bool checkInterrupts;
 	bool BMM150CalDone = false; 
 	bool BMM150InitDone = false; 
-
+	bool IMUInitDone = false;
 
 	struct curChar {
 		char name[20]; 

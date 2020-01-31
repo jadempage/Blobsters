@@ -39,6 +39,7 @@ MG Ideas:
 TFT_eSPI tft = TFT_eSPI();
 foodItem foodListC[FOOD_QTY];
 audio aPlayer;
+MPU9250 IMU;
 bmm150_mag_data mag_offset;
 bmm150_mag_data mag_max;
 bmm150_mag_data mag_min;
@@ -370,8 +371,9 @@ int gamePlay::gameBoard() {
 				curWinnings = game_treasure();
 				return curWinnings;
 			}
-			else if (strcmp(gameNames[curPos], "4") == 0) {
-				//DO THE GAME
+			else if (strcmp(gameNames[curPos], "Fruit Catcher") == 0) {
+				curWinnings = game_fruit();
+				return curWinnings; 
 			}
 
 		}
@@ -983,7 +985,6 @@ int gamePlay::game_pong() {
 	paddle paddlePlayer;
 	paddle paddleAI;
 	
-
 	theBall.x = SCREEN_WIDTH / 2;
 	theBall.y = SCREEN_HEIGHT / 2;
 	theBall.w = 5;
@@ -1364,6 +1365,31 @@ bool initBMM150()
 	return true;
 }
 
+int initIMU(){
+	IMU.initMPU9250();
+	//IMU.calibrateMPU9250(IMU.gyroBias, IMU.accelBias);
+}
+
+int getAccel(char axis) {
+	if (IMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
+	{
+		IMU.readAccelData(IMU.accelCount);
+		IMU.getAres();
+		switch (axis)
+		{
+		case 'X':
+			IMU.ax = (float)IMU.accelCount[0] * IMU.aRes * 1000;
+			return IMU.ax;
+		case 'Y':
+			IMU.ax = (float)IMU.accelCount[1] * IMU.aRes * 1000;
+			return IMU.ax;
+		case 'Z':
+			IMU.az = (float)IMU.accelCount[2] * IMU.aRes * 1000;
+			return IMU.az;
+		}
+	}
+}
+
 bool calibrateBMM150()
 {
 	uint32_t calibrate_timeout = 0;
@@ -1446,7 +1472,7 @@ int gamePlay::game_treasure(){
 	double origX = 160;
 	double origY = 120;
 	double goalHeading;
-	coords * bombHeadings;
+	std::vector<coords> bombHeadings; 
 	float curHeading; 
 	bool gameContinue = true; 
 	double curX;
@@ -1458,7 +1484,7 @@ int gamePlay::game_treasure(){
 	double sinres;
 	double cosres;
 	int playerScore = 0;
-	int curLevel = 5;
+	int curLevel = 1;
 
 	tft.fillScreen(TFT_WHITE);
 	tft.setTextSize(2);
@@ -1468,7 +1494,9 @@ int gamePlay::game_treasure(){
 		BMM150InitDone = true; 
 	}
 		while (gameContinue) {
+			m5.update();
 			if (getNextLevel) {
+				aPlayer.wavloop();
 				tft.fillCircle(160, 120, radius, TFT_BLACK);
 				tft.drawCircle(160, 120, radius, TFT_GREEN);
 				tft.drawCircle(160, 120, radius - 30, TFT_GREEN);
@@ -1481,9 +1509,8 @@ int gamePlay::game_treasure(){
 				goalX += radius;
 				goalY += radius; 
 				treasureBounds = ng_Treasure.getBoundingBox(goalX, goalY); 
-
+				aPlayer.forceStop(); 
 				bombHeadings = ng_Treasure.getBombHeadings(5, goalX, goalY); 
-
 				tft.setSwapBytes(true);
 				tft.pushImage(goalX, goalY, 20, 20, treasure1, transparent);
 
@@ -1492,7 +1519,8 @@ int gamePlay::game_treasure(){
 					DUMP(xCord);
 					int yCord = bombHeadings[i].y;
 					DUMP(yCord); 
-					tft.pushImage(xCord, yCord, 20, 20, bomb, transparent);
+					tft.setSwapBytes(true);
+					tft.pushImage(xCord, yCord, 17, 17, bomb, transparent);
 				}
 
 				tft.setTextColor(ORANGE, TFT_WHITE);
@@ -1503,7 +1531,13 @@ int gamePlay::game_treasure(){
 				tft.drawString("1", 0, 0);
 				delay(1000);
 				getNextLevel = false; 
-
+				tft.fillScreen(TFT_WHITE);
+				tft.fillCircle(160, 120, radius, TFT_BLACK);
+				tft.drawCircle(160, 120, radius, TFT_GREEN);
+				tft.drawCircle(160, 120, radius - 30, TFT_GREEN);
+				tft.drawCircle(160, 120, radius - 60, TFT_GREEN);
+				tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
+				tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
 			}
 			curHeading = getBMM150Data();
 			sinres = sin(curHeading);
@@ -1521,27 +1555,48 @@ int gamePlay::game_treasure(){
 			tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
 			tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
 			if (btnAPress) {
+				aPlayer.wavloop();
+				m5.update();
 				clearButtons(); 
 				isIntersecting = ng_Treasure.checkIntersection(curX, curY, treasureBounds);
+				DUMP(isIntersecting); 
 				if (isIntersecting == true) {
+					aPlayer.playSound(scWinGame);
+					m5.update();
+					delay(600);
 					getNextLevel = true;
 					isIntersecting = false;
-					//Happy noise
-					//Next level
-					//++ score
-					
+					curLevel++;
+					if (curLevel > 5) {
+						aPlayer.playSound(scWinGame);
+						m5.update();
+						int winnings = playerScore + curLevel * 20;
+						gameOverScreen(winnings, true);
+						return winnings;
+					}
 				}
-				else if (isIntersecting != true) {
-					int winnings = playerScore * 20;
-					gameOverScreen(winnings, true);
-					return winnings;
-					//Sad noise
-					//U suck
-					//Game over
+				else  {
+					for (int i = 0; i < curLevel; i++) {
+						aPlayer.wavloop(); 
+						m5.update();
+						bool gameOver = false;
+						Serial.printf("Checking %d \n", i); 
+						boundingBox bombBounds = ng_Treasure.getBoundingBox(bombHeadings[i].x, bombHeadings[i].y);
+						isIntersecting = ng_Treasure.checkIntersection(curX, curY, bombBounds);
+						DUMP(isIntersecting);
+						if (isIntersecting == true) {
+							aPlayer.playSound(scBombExplode);
+							m5.update();
+							tft.pushImage(bombHeadings[i].x, bombHeadings[i].y, 35, 34, bomb_explode1, transparent);
+							delay(300);
+							tft.pushImage(bombHeadings[i].x, bombHeadings[i].y, 51, 48, bomb_explode2, transparent);
+							delay(300);
+							int winnings = playerScore * 20;
+							gameOverScreen(winnings, true);
+							return winnings;
+						}
+					}
 				}
-
-
-
 			}
 			if (btnCPress) {
 				aPlayer.playSound(scButtonC);
@@ -1561,9 +1616,78 @@ int gamePlay::game_treasure(){
 		}
 		return 0;
 	}
-	
 
+int gamePlay::game_fruit() {
+	game_Fruit ngFruit;
+	std::vector<apple> appleList; 
+	tft.fillScreen(TFT_WHITE);
+	int maxRight = SCREEN_WIDTH - 60; 
+	int maxLeft = 30;
+	int xAcc = 0;
+	int playerStep = 20;
+	for (int x = 0; x < 320; x = x + 16) {
+		for (int y = 175; y < 260; y = y + 16) {
+			tft.pushImage(x, y, 16, 16, grass_tile);
+		}
+	}
+	if (!IMUInitDone) {
+		initIMU();
+		IMUInitDone = true;
+	}
+	int playerScore = 0;
+	int playerX = 200;
+	int playerY = 180;
+	bool gameContinue = true;
+	bool moveLeft = false;
+	bool moveRight = false; 
+	while (gameContinue) {
+		tft.setSwapBytes(true); 
+		int newAppleChance = (rand() % 3) + 1; //1 in 3 chance of new apple per game "tick"
+		DUMP(newAppleChance);
+		if (newAppleChance == 3) {
+			Serial.printf("Generating new apple \n");
+			apple newApple = ngFruit.generateApple();
+			appleList.push_back(newApple); 
+		}
+		tft.pushImage(playerX, playerY, 64, 64, blue_catcher, 0xFFFF);
+		for (int i = 0; i < appleList.size(); i++) {
+			apple thisApple = appleList[i];
+			Serial.printf("Drawing apple %d \n at X: %d, Y: %d", i, thisApple.x, thisApple.y);
+			if (thisApple.isGold) {
+				tft.pushImage(thisApple.x, thisApple.y, 32, 32, apple_gold, 0xFFFF);
+				Serial.printf("Gold apple \n"); 
+			}
+			else {
+				tft.pushImage(thisApple.x, thisApple.y, 32, 32, apple_reg, 0xFFFF);
+				Serial.printf("Reg apple \n");
+			}
+			thisApple.y += playerStep;
+		}
+		xAcc = getAccel('X'); 
+		if (playerX > maxRight) {
+			playerX = maxRight;
+		}
+		if (playerX > maxLeft) {
+			playerX = maxLeft;
+		}
+		if (abs(xAcc) > 70)
+		{
+			if (xAcc > 0) {
+				playerX -= playerStep;
+			}
+			else if (xAcc < 0) {
+				playerX += playerStep;
+			}
+			delay(800);
+			refloor(0, 176, 320, 260, playerX, playerY, grass_tile, 64, 64);
+		}
+	}
+	
+}
+	
 void gamePlay::gameOverScreen(int winnings, bool didWin) {
+	aPlayer.forceStop();
+	m5.update();
 	char winStr[10];
 	bool isCheer = false; 
 	sprintf(winStr, "%d", winnings);
