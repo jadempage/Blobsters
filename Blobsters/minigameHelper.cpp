@@ -337,7 +337,7 @@ apple game_Fruit::generateApple()
 	//Generate random Y between 0 and YMAX
 	//Decide if golden (1/10 chance)
 	int goldChance = (rand() % 10) + 1;
-	int yPos = (rand() % SCREEN_WIDTH) + 1;
+	int xPos = (rand() % SCREEN_WIDTH) + 1;
 	apple newApple;
 	if (goldChance == 1) {
 		newApple.isGold = true;
@@ -345,8 +345,26 @@ apple game_Fruit::generateApple()
 	else {
 		newApple.isGold = false;
 	}
-	newApple.y = yPos;
-	newApple.x = 0; 
+	newApple.x = xPos;
+	newApple.y = 0; 
 	newApple.onScreen = true;
 	return newApple;
+}
+
+bool game_Fruit::valueInRange(int value, int min, int max)
+{
+	return (value >= min) && (value <= max);
+}
+
+bool game_Fruit::appleCatch(int appleX, int appleY, int charX, int charY)
+{
+	int width = 32;
+	int height = 32;
+	bool xOverlap = valueInRange(appleX, charX, charX + width) ||
+		valueInRange(charX, appleX, charX + width);
+
+	bool yOverlap = valueInRange(appleY, charY, charY + height) ||
+		valueInRange(charY, appleY, appleY + height);
+
+	return xOverlap && yOverlap;
 }

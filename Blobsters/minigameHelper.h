@@ -107,4 +107,6 @@ struct apple {
 class game_Fruit {
 public:
 	apple generateApple();
-};
+	bool valueInRange(int value, int min, int max);
+	bool appleCatch(int appleX, int appleY, int charX, int charY);
+}; 

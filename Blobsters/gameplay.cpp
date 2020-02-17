@@ -1618,11 +1618,13 @@ int gamePlay::game_treasure(){
 	}
 
 int gamePlay::game_fruit() {
+	uint16_t transparent = 0xFFFF;
 	game_Fruit ngFruit;
 	std::vector<apple> appleList; 
+	bool redrawSprite = true; 
 	tft.fillScreen(TFT_WHITE);
-	int maxRight = SCREEN_WIDTH - 60; 
-	int maxLeft = 30;
+	int maxRight = SCREEN_WIDTH - 10; 
+	int minLeft = 30;
 	int xAcc = 0;
 	int playerStep = 20;
 	for (int x = 0; x < 320; x = x + 16) {
@@ -1640,45 +1642,66 @@ int gamePlay::game_fruit() {
 	bool gameContinue = true;
 	bool moveLeft = false;
 	bool moveRight = false; 
+	tft.setSwapBytes(true);
 	while (gameContinue) {
-		tft.setSwapBytes(true); 
-		int newAppleChance = (rand() % 3) + 1; //1 in 3 chance of new apple per game "tick"
+		int newAppleChance = (rand() % 5) + 1; //1 in 5 chance of new apple per game "tick"
+		if (appleList.size() > 4) {
+			newAppleChance = 0;
+		}
 		DUMP(newAppleChance);
 		if (newAppleChance == 3) {
 			Serial.printf("Generating new apple \n");
 			apple newApple = ngFruit.generateApple();
 			appleList.push_back(newApple); 
 		}
-		tft.pushImage(playerX, playerY, 64, 64, blue_catcher, 0xFFFF);
+		if (redrawSprite) {
+			tft.pushImage(playerX, playerY, 64, 64, blue_catcher, 0xFFFF);
+			redrawSprite = false; 
+		}
+		
 		for (int i = 0; i < appleList.size(); i++) {
 			apple thisApple = appleList[i];
 			Serial.printf("Drawing apple %d \n at X: %d, Y: %d", i, thisApple.x, thisApple.y);
 			if (thisApple.isGold) {
-				tft.pushImage(thisApple.x, thisApple.y, 32, 32, apple_gold, 0xFFFF);
-				Serial.printf("Gold apple \n"); 
+				tft.fillRect(thisApple.x, thisApple.y, 11, 11, TFT_YELLOW);
+				//tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_gold, transparent);
 			}
 			else {
-				tft.pushImage(thisApple.x, thisApple.y, 32, 32, apple_reg, 0xFFFF);
-				Serial.printf("Reg apple \n");
-			}
-			thisApple.y += playerStep;
+				tft.fillRect(thisApple.x, thisApple.y, 11, 11, TFT_RED);
+			/*	tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_reg, transparent);*/
+			}			
 		}
 		xAcc = getAccel('X'); 
 		if (playerX > maxRight) {
+			redrawSprite = true;
 			playerX = maxRight;
 		}
-		if (playerX > maxLeft) {
-			playerX = maxLeft;
+		if (playerX < minLeft) {
+			redrawSprite = true; 
+			playerX = minLeft;
 		}
 		if (abs(xAcc) > 70)
 		{
+			redrawSprite = true; 
 			if (xAcc > 0) {
 				playerX -= playerStep;
 			}
 			else if (xAcc < 0) {
 				playerX += playerStep;
 			}
-			delay(800);
+		}
+		delay(300);
+		for (int i = 0; i < appleList.size(); i++) {
+			if (ngFruit.appleCatch(appleList[i].x, appleList[i].y, playerX, playerY)) {
+				appleList[i].onScreen = false; 
+				tft.fillRect(appleList[i].x, appleList[i].y, 11, 11, TFT_WHITE);
+				appleList.erase(appleList.begin() + i);
+			}
+			tft.fillCircle(appleList[i].x, appleList[i].y, 11, TFT_WHITE);
+			appleList[i].y = appleList[i].y + 5;
+			Serial.printf("This apple Y is: %d \n", appleList[i].y);
+		}
+		if (redrawSprite) {
 			refloor(0, 176, 320, 260, playerX, playerY, grass_tile, 64, 64);
 		}
 	}
