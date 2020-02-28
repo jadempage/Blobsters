@@ -101,6 +101,7 @@ public:
 struct apple {
 	int x, y;
 	bool isGold;
+	bool belowSky;
 	bool onScreen;
 };
 

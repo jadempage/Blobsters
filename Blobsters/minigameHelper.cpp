@@ -348,6 +348,7 @@ apple game_Fruit::generateApple()
 	newApple.x = xPos;
 	newApple.y = 0; 
 	newApple.onScreen = true;
+	newApple.belowSky = false;
 	return newApple;
 }
 
@@ -358,13 +359,16 @@ bool game_Fruit::valueInRange(int value, int min, int max)
 
 bool game_Fruit::appleCatch(int appleX, int appleY, int charX, int charY)
 {
-	int width = 32;
-	int height = 32;
-	bool xOverlap = valueInRange(appleX, charX, charX + width) ||
-		valueInRange(charX, appleX, charX + width);
+	int aWidth = 11;
+	int aHeight = 11;
+	int cHeight = 20;
+	int cWidth = 50; 
 
-	bool yOverlap = valueInRange(appleY, charY, charY + height) ||
-		valueInRange(charY, appleY, appleY + height);
+	bool xOverlap = valueInRange(appleX, charX, charX + aWidth) ||
+		valueInRange(charX, appleX, charX + cWidth);
+
+	bool yOverlap = valueInRange(appleY, charY, charY + aHeight) ||
+		valueInRange(charY, appleY, appleY + cHeight);
 
 	return xOverlap && yOverlap;
 }
