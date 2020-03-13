@@ -1,18 +1,31 @@
-// grab the packages we need
+
 	var express = require('express');
     var fs = require('fs');
 	var app = express();
 	var port = process.env.PORT || 8080;
+   
 	
 	var bodyParser = require('body-parser');
 	app.use(bodyParser.json()); // support json encoded bodies
 	app.use(bodyParser.urlencoded({	extended: true })); // support encoded bodies
 	
-	// routes will go here
-	
+	// ====================================
+	// STATIC PAGES =====================
+	// ====================================
+    app.use('/', express.static(__dirname + '/'));
+ 
+    //make way for some custom css, js and images
+    app.use('/css', express.static(__dirname + '/css'));
+    app.use('/js', express.static(__dirname + '/js'));
+    app.use('/images', express.static(__dirname + '/images'));	
+
+
 	// ====================================
 	// URL PARAMETERS =====================
 	// ====================================
+
+//For posting score
+
 	// http://localhost:8080/api/submit?name=bob&score=64&gID=1&geo=GB
 	app.get('/api/submit', function(req, res) {
 	  var userName = req.param('name');
@@ -33,6 +46,12 @@
         dumpScore(scoreob); 
 	});
 	
+//For accessing scores
+http://localhost:8080/scores?gID=2
+app.get('/scores', function(req, res){
+    var gameID = req.param('gID');  
+})
+
 
 // start the server
 	app.listen(port);

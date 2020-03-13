@@ -1,7 +1,40 @@
-
+ var gameID = 0;
 
 function populateList(gameID){
     getData(1);
+}
+
+function generateTitle(gameID){
+    var title = document.getElementById("maintitle");
+    
+switch(gameID) {
+  case '1':
+    title.innerHTML="Fruit Catch";
+    break;
+  case '2':
+   title.innerHTML="High or Low";
+    break;
+  case '3':
+    title.innerHTML="Pong";
+    break;
+  case '4':
+    title.innerHTML="Treasure";
+    break;
+  case '5':
+   title.innerHTML="Invalid Game ID";
+    break;
+  case '6':
+    title.innerHTML="Invalid Game ID";
+    break;
+  case '7':
+   title.innerHTML="Invalid Game ID";
+    break;
+  case '8':
+   title.innerHTML="Invalid Game ID";
+    break;            
+  default:
+    title.innerHTML="Invalid Game ID";
+}
 }
 
 
@@ -40,5 +73,12 @@ function fetchJSONFile(path, callback) {
     httpRequest.send(); 
 }
 
+function startLoad(){
+    let toGetID = window.location.search;
+    var numberID = toGetID.slice(-1);
+    console.log(numberID);
+    generateTitle(numberID);
+    populateList(numberID);
+}
 
- window.onload = populateList(1);
+ window.onload = startLoad();

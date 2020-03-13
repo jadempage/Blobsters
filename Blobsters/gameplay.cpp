@@ -22,12 +22,13 @@
 6) Add age to save
 7) Save cal data 
 10) HiLo seems to give wrong answers
+11) HiLo noise is going nuts fr fr 
 
 MG Ideas:
 1) HiLow - DONE
 2) Pong - DONE
 3) Ball Maze (Gyro)
-4) Treasure Hunt (Magnetic sensor???)
+4) Treasure Hunt (Magnetic sensor???) - Good Enough
 5) Fruit Catch
 6) Coin Catch (Gyro) 
 7) "Guitar Hero"
@@ -1192,7 +1193,7 @@ int gamePlay::game_pong() {
 					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
 				}
 			}
-			//ball moving stright across
+			//ball moving straight across
 			if (theBall.dy == 0) {
 			}
 		}
@@ -1286,7 +1287,6 @@ int gamePlay::game_pong() {
 		aPlayer.forceStop();
 		return 0;
 	}
-
 }
 
 //Ugly loose methods but they won't work if I put them in their own class and IDK why so 
@@ -1618,20 +1618,27 @@ int gamePlay::game_treasure(){
 	}
 
 int gamePlay::game_fruit() {
+	m5.update();
+	aPlayer.wavloop();
+	char bugIntStr[10];
+	int winnings = 0;
+	int redApplesCaught = 0;
+	int goldApplesCaught = 0;
+	int applesFallen = 0;
 	uint16_t transparent = 0xFFFF;
 	game_Fruit ngFruit;
 	std::vector<apple> appleList; 
 	bool redrawSprite = true; 
-	tft.fillScreen(TFT_WHITE);
-	int maxRight = SCREEN_WIDTH - 10; 
-	int minLeft = 30;
+	bool stepRight = false;
+	bool stepLeft = false; 
+	tft.fillScreen(TFT_CYAN);
+	int maxRight = SCREEN_WIDTH - 30; 
+	int minLeft = 0;
+	int catchW = 50;
+	int catchH = 20; 
 	int xAcc = 0;
 	int playerStep = 20;
-	for (int x = 0; x < 320; x = x + 16) {
-		for (int y = 175; y < 260; y = y + 16) {
-			tft.pushImage(x, y, 16, 16, grass_tile);
-		}
-	}
+	tft.fillRect(0, 170, 360, 65, TFT_GREEN);
 	if (!IMUInitDone) {
 		initIMU();
 		IMUInitDone = true;
@@ -1643,70 +1650,146 @@ int gamePlay::game_fruit() {
 	bool moveLeft = false;
 	bool moveRight = false; 
 	tft.setSwapBytes(true);
+	tft.fillRect(playerX, playerY, catchW, catchH, TFT_BLACK);
 	while (gameContinue) {
+		m5.update();
+		aPlayer.wavloop();
 		int newAppleChance = (rand() % 5) + 1; //1 in 5 chance of new apple per game "tick"
-		if (appleList.size() > 4) {
-			newAppleChance = 0;
-		}
+		//if (appleList.size() > 4) {
+		//	newAppleChance = 0;
+		//}
 		DUMP(newAppleChance);
 		if (newAppleChance == 3) {
 			Serial.printf("Generating new apple \n");
 			apple newApple = ngFruit.generateApple();
-			appleList.push_back(newApple); 
-		}
-		if (redrawSprite) {
-			tft.pushImage(playerX, playerY, 64, 64, blue_catcher, 0xFFFF);
-			redrawSprite = false; 
-		}
-		
-		for (int i = 0; i < appleList.size(); i++) {
-			apple thisApple = appleList[i];
-			Serial.printf("Drawing apple %d \n at X: %d, Y: %d", i, thisApple.x, thisApple.y);
-			if (thisApple.isGold) {
-				tft.fillRect(thisApple.x, thisApple.y, 11, 11, TFT_YELLOW);
+			appleList.push_back(newApple);
+			applesFallen++;
+			if (newApple.isGold) {
+				tft.fillCircle(newApple.x, newApple.y, 11, TFT_YELLOW);
 				//tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_gold, transparent);
 			}
 			else {
-				tft.fillRect(thisApple.x, thisApple.y, 11, 11, TFT_RED);
-			/*	tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_reg, transparent);*/
-			}			
+				tft.fillCircle(newApple.x, newApple.y, 11, TFT_RED);
+				/*	tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_reg, transparent);*/
+			}
 		}
-		xAcc = getAccel('X'); 
+
+		xAcc = getAccel('X');
 		if (playerX > maxRight) {
-			redrawSprite = true;
+			//redrawSprite = true;
 			playerX = maxRight;
 		}
 		if (playerX < minLeft) {
-			redrawSprite = true; 
+			//	redrawSprite = true;
 			playerX = minLeft;
 		}
 		if (abs(xAcc) > 70)
 		{
-			redrawSprite = true; 
+			redrawSprite = true;
 			if (xAcc > 0) {
-				playerX -= playerStep;
+				stepLeft = true;
+				
 			}
 			else if (xAcc < 0) {
-				playerX += playerStep;
+				stepRight = true;
+				
 			}
 		}
-		delay(300);
+		tft.startWrite();
 		for (int i = 0; i < appleList.size(); i++) {
-			if (ngFruit.appleCatch(appleList[i].x, appleList[i].y, playerX, playerY)) {
-				appleList[i].onScreen = false; 
-				tft.fillRect(appleList[i].x, appleList[i].y, 11, 11, TFT_WHITE);
+			m5.update();
+			aPlayer.wavloop();
+			if (appleList[i].y > 165) {
+				appleList[i].belowSky = true;
+			}
+			if (appleList[i].y > 240) {
 				appleList.erase(appleList.begin() + i);
 			}
-			tft.fillCircle(appleList[i].x, appleList[i].y, 11, TFT_WHITE);
+			if (ngFruit.appleCatch(appleList[i].x, appleList[i].y, playerX, playerY)) {
+				aPlayer.playSound(scAppleCatch);
+				aPlayer.wavloop();
+				if (appleList[i].belowSky) {
+					tft.fillCircle(appleList[i].x, appleList[i].y, 11, TFT_GREEN);
+				}
+				else {
+					tft.fillCircle(appleList[i].x, appleList[i].y, 11, TFT_CYAN);
+				}
+				if (appleList[i].isGold) {
+					goldApplesCaught++;
+				}
+				else {
+					redApplesCaught++;
+				}
+				appleList.erase(appleList.begin() + i);
+			}
+		}
+		for (int i = 0; i < appleList.size(); i++) {
+			if (appleList[i].belowSky == true) {
+				tft.fillCircle(appleList[i].x, appleList[i].y, 11,  TFT_GREEN);
+			}
+			else {
+				tft.fillCircle(appleList[i].x, appleList[i].y, 11, TFT_CYAN);
+			}
+			if (appleList[i].isGold) {
+				tft.fillCircle(appleList[i].x, appleList[i].y + 11, 5, TFT_YELLOW);
+			}
+			else {
+				tft.fillCircle(appleList[i].x, appleList[i].y + 11, 5, TFT_RED);
+			}
 			appleList[i].y = appleList[i].y + 5;
-			Serial.printf("This apple Y is: %d \n", appleList[i].y);
 		}
-		if (redrawSprite) {
-			refloor(0, 176, 320, 260, playerX, playerY, grass_tile, 64, 64);
-		}
+			tft.setTextColor(TFT_BLACK, TFT_CYAN);
+			tft.setTextSize(2);
+			tft.drawString("Apples Left: ", 10, 10);
+			int applesLeft = 30 - applesFallen;
+			sprintf(bugIntStr, "%d", applesLeft);
+			tft.drawString(bugIntStr, 10, 30);
+			tft.endWrite();
+			if (redrawSprite) {
+				if (stepRight) {
+					tft.fillRect(playerX, playerY, catchW, 20, TFT_GREEN);
+					playerX += playerStep;
+					tft.fillRect(playerX, playerY, catchW, catchH, TFT_BLACK);
+					stepRight = false;
+				}
+				if (stepLeft) {
+					tft.fillRect(playerX + catchW - 20, playerY, catchW, 20, TFT_GREEN);
+					playerX -= playerStep;
+					tft.fillRect(playerX, playerY, catchW, catchH, TFT_BLACK);
+					stepLeft = false; 
+				}
+			/*	tft.fillRect(playerX, playerY, 50, 20, TFT_BLACK);*/
+				redrawSprite = false;
+			}
+			m5.update();
+			aPlayer.wavloop();
+			delay(400);
+			if (btnCPress) {
+				aPlayer.playSound(scButtonC);
+				clearButtons();
+				gameContinue = false;
+				delay(200);
+				aPlayer.forceStop();
+			}
+			if (applesFallen >= 30) {
+				winnings = redApplesCaught;
+				winnings += goldApplesCaught * 5;
+				gameOverScreen(winnings, true);
+				return winnings;
+			}
 	}
-	
+	if (btnCPress) {
+		aPlayer.playSound(scButtonC);
+		clearButtons();
+		gameContinue = false;
+		delay(200);
+		aPlayer.forceStop();
+		return 0;
+	}
+	return 0;
 }
+
+	
 	
 void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	aPlayer.forceStop();

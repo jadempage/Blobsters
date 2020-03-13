@@ -8,10 +8,6 @@
 
 #ifndef bool
 
-
-//#include <Game_Audio.h>
-//#include "audio.h"
-
 #include <Arduino.h>
 #include <Wire.h>
 #include "Preferences.h"
@@ -25,32 +21,14 @@
 #include <ArduinoTrace.h>
 #include "minigameHelper.h"
 #include <AudioStatus.h>
-//#include <AudioOutputSTDIO.h>
 #include <AudioOutputSerialWAV.h>
-//#include <AudioOutputNull.h>
-//#include <AudioOutputMixer.h>
 #include <AudioOutputI2SNoDAC.h>
 #include <AudioOutputI2S.h>
-//#include <AudioOutputFilterDecimate.h>
-//#include <AudioOutputBuffer.h>
 #include <AudioOutput.h>
 #include <AudioLogger.h>
-#include <AudioGeneratorWAV.h>/*
-#include <AudioGeneratorRTTTL.h>
-#include <AudioGeneratorMP3a.h>
-#include <AudioGeneratorMP3.h>
-#include <AudioGeneratorMOD.h>
-#include <AudioGeneratorMIDI.h>
-#include <AudioGeneratorFLAC.h>
-#include <AudioGeneratorAAC.h>*/
+#include <AudioGeneratorWAV.h>
 #include <AudioGenerator.h>
-//#include <AudioFileStream.h>
-//#include <AudioFileSourceSTDIO.h>
-//#include <AudioFileSourceSD.h>
 #include <AudioFileSourcePROGMEM.h>
-//#include <AudioFileSourceID3.h>
-//#include <AudioFileSourceICYStream.h>
-//#include <AudioFileSourceHTTPStream.h>
 #include <AudioFileSourceFS.h>
 #include <AudioFileSourceBuffer.h>
 #include <AudioFileSource.h>

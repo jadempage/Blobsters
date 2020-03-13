@@ -35,3 +35,7 @@
 *.db
 *.ipch
 *.suo
+
+#folders
+\M5PetWeb\node_modules\
+\debug\
