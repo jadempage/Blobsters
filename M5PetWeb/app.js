@@ -2,7 +2,7 @@
 	var express = require('express');
     var fs = require('fs');
 	var app = express();
-	var port = process.env.PORT || 8080;
+	var port = process.env.PORT || 17777;
    
 	
 	var bodyParser = require('body-parser');
@@ -26,15 +26,13 @@
 
 //For posting score
 
-	// http://localhost:8080/api/submit?name=bob&score=64&gID=1&geo=GB
+	// http://localhost:17777/api/submit?name=bob&score=64&gID=1&geo=GB
 	app.get('/api/submit', function(req, res) {
 	  var userName = req.param('name');
 	  var score = req.param('score');
 	  var gameID = req.param('gID');  
       var geo = req.param('geo');  
       var date = new Date().toLocaleDateString();
-    
-      cleanUp();
       var scoreob = {user: userName, score: score, geo: geo, gameID: gameID, date: date};
       var check = checkParams(userName, score, geo, gameID);
       if (check != "success"){
@@ -43,11 +41,11 @@
     else{
          res.send('submitted');
     }
-        dumpScore(scoreob); 
+        postNewScore(scoreob); 
 	});
 	
 //For accessing scores
-http://localhost:8080/scores?gID=2
+//http://localhost:8080/scores?gID=2
 app.get('/scores', function(req, res){
     var gameID = req.param('gID');  
 })
@@ -91,57 +89,63 @@ function isAlphaNumeric(str) {
   }
   return true;
 };
-
-
-
-function dumpScore(scoreob){
-var outputFilename = 'data/test.json';  
-   fs.appendFile(outputFilename, JSON.stringify(scoreob, null) + "\n", function(err) {
-    if(err) {
-      console.log(err);
-    } else {
-      console.log("JSON saved to " + outputFilename);
-    }
-});  }
-
-
-function cleanUp(){
-    //Serialize data, sort, save top 50, delete the rest
-    var arrData;
-    var outputFilename = 'data/test.json';  
-    var cleanedUp = false;
-       fs.readFile('data/mock.json', (err, data) => { 
+ 
+function postNewScore(scoreObj) {
+    gameID = scoreObj.gameID;
+    var file; 
+    var scoreToAdd;
+switch(gameID) {
+  case '1':
+    file = "data/fruit.json";
+    break;
+  case '2':
+   file = "data/hilo.json";
+    break;
+  case '3':
+    file = "data/pong.json";
+    break;
+  case '4':
+    file = "data/treasure.json";
+    break;
+  case '5':
+   file = "data/test.json";
+    break;
+  case '6':
+    file = "data/test.json";
+    break;
+  case '7':
+   file = "data/test.json";
+    break;
+  case '8':
+   file = "data/test.json";
+    break;            
+  default:
+    file = "data/test2.json";
+    break;
+}
+    fs.readFile(file, (err, data) => {    
       if (err) throw err; 
-    
       arrData = JSON.parse(data);
+      scoreToAdd = JSON.stringify(scoreObj, null);
+      arrData.push(scoreToAdd);
+      arrData.sort(function(a,b){return b.score - a.score});
       var arrLen = arrData.length;
-      console.log(arrLen); 
       if (arrLen > 50){
-        arrData.sort(function(a,b){return b.score - a.score});
         var toRemove = arrLen - 50;
-        console.log(toRemove);
+        console.log("Removing: " + toRemove);
         arrData.splice(50, toRemove);
-        fs.writeFile(outputFilename, JSON.stringify("", null), function(err) {
+     }
+    fs.writeFile(file, JSON.stringify(arrData, null), function(err) {
           if(err) {
             console.log(err);
           } else {
-            console.log("JSON saved to " + outputFilename);
+            console.log("Clean JSON saved to: " + file);
           }
-      });
-      for(var i = 0; i < arrData.length; i++){
-        scoreob = arrData[i];
-        dumpScore(scoreob);
-      }
-      }
-      console.log(arrData);
-      console.log(arrData.length);
-  }) 
-
-}
-
-
-
-
+    })
+})
+                
+};
+ 
 
 
 

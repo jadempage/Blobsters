@@ -69,6 +69,7 @@ public:
 	int game_fruit();
 
 	void gameOverScreen(int winnings, bool didWin);
+	void postScore(int gameID, int score);
 	bool inRange(int low, int high, int x);
 	int noInterrupts = 0; 
 	int hungerInterrupts = 0;

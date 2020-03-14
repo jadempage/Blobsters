@@ -11,7 +11,8 @@
 #define isBetween(A, B, C) ( ((A-B) > - ZERO) && ((A-C) < ZERO) )
 #define SCREEN_WIDTH 320	//window height
 #define SCREEN_HEIGHT 240	//window width
-
+const char* ssid = "m5petwifi";
+const char* password = "jp765";
 
 /* To do:
 1) Handle fridge showing multiple pages
@@ -23,6 +24,7 @@
 7) Save cal data 
 10) HiLo seems to give wrong answers
 11) HiLo noise is going nuts fr fr 
+12) Scan for networks? Inputting password would be a pita tho? 
 
 MG Ideas:
 1) HiLow - DONE
@@ -37,6 +39,7 @@ MG Ideas:
 10) Simon Says
 */
 
+HTTPClient http;
 TFT_eSPI tft = TFT_eSPI();
 foodItem foodListC[FOOD_QTY];
 audio aPlayer;
@@ -1806,7 +1809,8 @@ void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	tft.drawString(winStr, 140, 110);
 	tft.drawString("Coins", 130, 140);
 	tft.setTextSize(2);
-	tft.drawString("OK", 250, 210);
+	tft.drawString("Submit Score", 80, 210);
+	tft.drawString("Back", 250, 210);
 	while (!btnCPress) {
 		if (isCheer) {
 			tft.pushImage(10, 160, 64, 64, blue_front, 0xFFFF);
@@ -1823,6 +1827,40 @@ void gamePlay::gameOverScreen(int winnings, bool didWin) {
 		clearButtons();
 		aPlayer.forceStop();
 		return;
+	}
+}
+
+void gamePlay::postScore(int gameID, int score) {
+	WiFi.begin(ssid, password);
+	int connectionAttempts = 0;
+	bool didFail = false;
+	int maxTimeOut = 20; 
+	char connStr[10];
+	tft.fillScreen(TFT_WHITE);
+	tft.setTextColor(TFT_BLACK);
+	tft.setTextSize(4);
+	
+	while (WiFi.status() != WL_CONNECTED && didFail == false) {
+		sprintf(connStr, "%d", connectionAttempts);
+		if (connectionAttempts < maxTimeOut) {
+			delay(500);
+			tft.drawString("POSTING SCORE ", 60, 30);
+			tft.drawString(connStr, 60, 60);
+		}
+		else {
+			didFail = true;
+		}
+	}
+	if (didFail) {
+		while (!btnCPress) {
+			tft.setTextSize(3);
+			tft.drawString("Failed To Post Score :( ", 60, 30);
+			tft.drawString("Ok", 250, 210);
+		}
+	}
+	else {
+		//Create the GET request string
+		//http://jadempage.servegame.org/api/submit?name=bob&score=64&gID=1&geo=GB
 	}
 }
 

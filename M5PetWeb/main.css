@@ -72,3 +72,41 @@
     text-align: center;
      font-family: "Roboto";
 }
+
+table thead
+{
+    display: block;
+    position: sticky; 
+}
+
+table tbody 
+{
+   overflow: auto;
+   height: 500px;
+}
+
+tr:nth-child(even) {background-color: #f2f2f2;}
+tr:hover {background-color: #ddd;}
+
+table, th, td {
+    border-collapse: collapse;
+    width: 350px; /* can be dynamic */
+    border: 1px solid black;
+}
+
+th
+{
+    width: 75px;
+    background-color: #4CAF50;
+    position: sticky;
+    color: white;
+}
+
+div.tableContainer {
+	clear: both;
+	border: 1px solid #963;
+	height: 285px;
+	overflow: auto;
+	width: 756px
+}
+

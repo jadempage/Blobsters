@@ -1,7 +1,7 @@
  var gameID = 0;
 
 function populateList(gameID){
-    getData(1);
+    getData(gameID);
 }
 
 function generateTitle(gameID){
@@ -41,18 +41,53 @@ switch(gameID) {
 function getData(gameID){
 var ol = document.querySelector("ol");
 var items = [];    
-$.getJSON( "data/test.json", function( json ) {
-//  $.each( json, function( user, score, geo, date ) {
-//    items.push( "User: " + user + " score: " + score + "location: " + geo + "date: " + date);
-//    console.log(items);
-//      console.log(items.length);
+var file;    
+switch(gameID) {
+  case '1':
+    file = "data/fruit.json";
+    break;
+  case '2':
+   file = "data/hilo.json";
+    break;
+  case '3':
+    file = "data/pong.json";
+    break;
+  case '4':
+    file = "data/treasure.json";
+    break;
+  case '5':
+   file = "data/test.json";
+    break;
+  case '6':
+    file = "data/test.json";
+    break;
+  case '7':
+   file = "data/test.json";
+    break;
+  case '8':
+   file = "data/test.json";
+    break;            
+  default:
+    file = "data/test2.json";
+}    
+       
+$.getJSON( file, function( json ) {
     console.log(json.length);
     
     for(var i = 0; i < json.length; i++) {
-        var obj = json[i];
-        var listItem = document.createElement("li");
-        listItem.textContent = ("Date: " + obj.date + "User: " + obj.user + " score: " + obj.score + " location: " + obj.geo); 
-         ol.appendChild(listItem);
+        var obj = JSON.parse(json[i]);
+    
+        console.log(obj);
+        var table = document.getElementById("mainTable");
+        var topRow = document.getElementById("topRow");
+        var row = table.insertRow(i+1);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        var cell3 = row.insertCell(2);
+        
+        cell1.innerHTML = obj.date;
+        cell2.innerHTML = obj.user;
+        cell3.innerHTML = obj.score;
     }
   });
     
@@ -82,3 +117,4 @@ function startLoad(){
 }
 
  window.onload = startLoad();
+

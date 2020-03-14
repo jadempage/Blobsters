@@ -7,7 +7,18 @@
 // the setup function runs once when you press reset or power the board
 
 #ifndef bool
-
+//#include <WiFiUdp.h>
+//#include <WiFiType.h>
+//#include <WiFiSTA.h>
+//#include <WiFiServer.h>
+//#include <WiFiScan.h>
+//#include <WiFiMulti.h>
+//#include <WiFiGeneric.h>
+//#include <WiFiClient.h>
+//#include <WiFiAP.h>
+//#include <ETH.h>
+#include <HTTPClient.h>
+#include "WiFi.h"
 #include <Arduino.h>
 #include <Wire.h>
 #include "Preferences.h"
@@ -40,6 +51,7 @@
 gamePlay theGame;
 unsigned long lastDebounceTime = 0;
 unsigned long debounceDelay = 250;
+
 
 void IRAM_ATTR isra() {
 	if ((millis() - lastDebounceTime) > debounceDelay) {
@@ -87,12 +99,16 @@ void setup() {
 	timerAttachInterrupt(theTimer, onInterTimer, true);
 	timerAlarmWrite(theTimer, 600000000, true);
 	timerAlarmEnable(theTimer);
+	
+
 	//2000000 = 2 seconds, We want like an hour IG so 3600000000, 600000000 = 10 min for testing 
 
 	/* 1 tick take 1/(80MHZ/80) = 1us so we set divider 80 and count up */
 	//timer = timerBegin(0, 240, true);
 	//timerAttachInterrupt(timer, &onTimer, true);
 	//timerAlarmWrite(timer, 7200000000, true);
+
+
 }
 
 // the loop function runs over and over again until power down or reset
