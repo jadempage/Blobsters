@@ -68,7 +68,7 @@ public:
 	int game_treasure();
 	int game_fruit();
 
-	void gameOverScreen(int winnings, bool didWin);
+	void gameOverScreen(int winnings, int gameID, bool didWin);
 	void postScore(int gameID, int score);
 	bool inRange(int low, int high, int x);
 	int noInterrupts = 0; 

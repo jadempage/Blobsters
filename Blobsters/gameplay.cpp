@@ -1,3 +1,5 @@
+#include <HTTPClient.h>
+
   // 
 // 
 // 
@@ -12,8 +14,8 @@
 #define SCREEN_WIDTH 320	//window height
 #define SCREEN_HEIGHT 240	//window width
 const char* ssid = "m5petwifi";
-const char* password = "jp765";
-
+const char* password = "jp765765";
+const char* userloc = "GB";
 /* To do:
 1) Handle fridge showing multiple pages
 2) Make fridge "Sold out" thing not look shit (Mostly fixed, still leftover "max size" errors and only first one gets new ico 
@@ -25,13 +27,15 @@ const char* password = "jp765";
 10) HiLo seems to give wrong answers
 11) HiLo noise is going nuts fr fr 
 12) Scan for networks? Inputting password would be a pita tho? 
+13) Add hatching and naming ffs
+14) Add user location??? 
 
 MG Ideas:
 1) HiLow - DONE
 2) Pong - DONE
 3) Ball Maze (Gyro)
 4) Treasure Hunt (Magnetic sensor???) - Good Enough
-5) Fruit Catch
+5) Fruit Catch - Mostly done
 6) Coin Catch (Gyro) 
 7) "Guitar Hero"
 8) Jumpy Pet
@@ -790,10 +794,9 @@ int gamePlay::game_highlow() {
 	ng_HiLo.curWinnings = 0;
 	ng_HiLo.roundsPlayed = 0;
 	while (!btnCPress) {
-		m5.update();
-		aPlayer.wavloop(); 
+
+
 		Serial.write("Doing next round \n"); 
-		aPlayer.wavloop();
 		isAce = false;
 		DUMP(ng_HiLo.roundsPlayed); 
 		if (ng_HiLo.roundsPlayed == 0) {
@@ -923,7 +926,7 @@ int gamePlay::game_highlow() {
 						Serial.write("Loser \n");
 						clearButtons();
 						delay(2000);
-						gameOverScreen(ng_HiLo.curWinnings, false);
+						gameOverScreen(ng_HiLo.curWinnings, 2, false);
 						return ng_HiLo.curWinnings;
 					}
 				}
@@ -939,7 +942,7 @@ int gamePlay::game_highlow() {
 						//Loser!!!!
 						//Do sad music
 						delay(2000);
-						gameOverScreen(ng_HiLo.curWinnings, false); 
+						gameOverScreen(ng_HiLo.curWinnings, 2, false); 
 						return ng_HiLo.curWinnings;
 					}
 					else if (!isHigher || isAce) {
@@ -958,7 +961,8 @@ int gamePlay::game_highlow() {
 	Serial.write("Next round"); 
 	aPlayer.playSound(scDrawCard);
 	aPlayer.waitForFinish();
-
+	m5.update();
+	aPlayer.wavloop();
 	}
 	if (btnCPress) {
 		aPlayer.playSound(scButtonC);
@@ -1262,13 +1266,13 @@ int gamePlay::game_pong() {
 		if (AIScore >= scoreLimit) {
 			gameContinue = false; 
 			int winnings = playerScore * 20;
-			gameOverScreen(winnings, true);
+			gameOverScreen(winnings, 3, true);
 			return winnings;
 		}
 		else if (playerScore >= scoreLimit) {
 			gameContinue = false;
 			int winnings = playerScore * 20;
-			gameOverScreen(winnings, true);
+			gameOverScreen(winnings, 3, true);
 			return winnings;
 		}
 		if (btnCPress) {
@@ -1278,7 +1282,7 @@ int gamePlay::game_pong() {
 			aPlayer.forceStop();
 			gameContinue = false;
 			int winnings = playerScore * 20;
-			gameOverScreen(winnings, true);
+			gameOverScreen(winnings, 3, true);
 			return winnings;
 		}
 		delay(20); 
@@ -1574,7 +1578,7 @@ int gamePlay::game_treasure(){
 						aPlayer.playSound(scWinGame);
 						m5.update();
 						int winnings = playerScore + curLevel * 20;
-						gameOverScreen(winnings, true);
+						gameOverScreen(winnings, 4, true);
 						return winnings;
 					}
 				}
@@ -1595,7 +1599,7 @@ int gamePlay::game_treasure(){
 							tft.pushImage(bombHeadings[i].x, bombHeadings[i].y, 51, 48, bomb_explode2, transparent);
 							delay(300);
 							int winnings = playerScore * 20;
-							gameOverScreen(winnings, true);
+							gameOverScreen(winnings, 4, true);
 							return winnings;
 						}
 					}
@@ -1777,7 +1781,7 @@ int gamePlay::game_fruit() {
 			if (applesFallen >= 30) {
 				winnings = redApplesCaught;
 				winnings += goldApplesCaught * 5;
-				gameOverScreen(winnings, true);
+				gameOverScreen(winnings, 1, true);
 				return winnings;
 			}
 	}
@@ -1794,7 +1798,7 @@ int gamePlay::game_fruit() {
 
 	
 	
-void gamePlay::gameOverScreen(int winnings, bool didWin) {
+void gamePlay::gameOverScreen(int winnings, int gameID, bool didWin) {
 	aPlayer.forceStop();
 	m5.update();
 	char winStr[10];
@@ -1809,15 +1813,15 @@ void gamePlay::gameOverScreen(int winnings, bool didWin) {
 	tft.drawString(winStr, 140, 110);
 	tft.drawString("Coins", 130, 140);
 	tft.setTextSize(2);
-	tft.drawString("Submit Score", 80, 210);
+	tft.drawString("Submit ", 10, 210);
 	tft.drawString("Back", 250, 210);
-	while (!btnCPress) {
+	while (!btnCPress && !btnAPress) {
 		if (isCheer) {
-			tft.pushImage(10, 160, 64, 64, blue_front, 0xFFFF);
+			tft.pushImage(10, 120, 64, 64, blue_front, 0xFFFF);
 			isCheer = false;
 		}
 		else {
-			tft.pushImage(10, 160, 64, 64, blue_blink, 0xFFFF);
+			tft.pushImage(10, 120, 64, 64, blue_blink, 0xFFFF);
 			isCheer = true;
 		}
 		delay(500); 
@@ -1828,22 +1832,34 @@ void gamePlay::gameOverScreen(int winnings, bool didWin) {
 		aPlayer.forceStop();
 		return;
 	}
+	if (btnAPress) {
+		aPlayer.playSound(scButtonC);
+		clearButtons();
+		aPlayer.forceStop();
+		postScore(gameID, winnings);
+		return;
+	}
 }
 
 void gamePlay::postScore(int gameID, int score) {
 	WiFi.begin(ssid, password);
 	int connectionAttempts = 0;
 	bool didFail = false;
+	bool httpFail = false;
 	int maxTimeOut = 20; 
+	tft.setTextSize(3);
 	char connStr[10];
+	char getStr[100];
 	tft.fillScreen(TFT_WHITE);
-	tft.setTextColor(TFT_BLACK);
-	tft.setTextSize(4);
-	
+	tft.setTextColor(TFT_BLACK, TFT_WHITE);
+
+	sprintf(getStr, "http://jadempage.servegame.org:17777/api/submit?name=%s&score=%d&gID=%d&geo=%s", cChar.name, score, gameID, userloc);
+	DUMP(getStr);
 	while (WiFi.status() != WL_CONNECTED && didFail == false) {
 		sprintf(connStr, "%d", connectionAttempts);
 		if (connectionAttempts < maxTimeOut) {
 			delay(500);
+			connectionAttempts++;
 			tft.drawString("POSTING SCORE ", 60, 30);
 			tft.drawString(connStr, 60, 60);
 		}
@@ -1853,15 +1869,62 @@ void gamePlay::postScore(int gameID, int score) {
 	}
 	if (didFail) {
 		while (!btnCPress) {
+			tft.drawString("Failed To Post Score :( ", 60, 30);
+			tft.drawString("Ok", 250, 210);
+		}
+		if (btnCPress) {
+			aPlayer.playSound(scButtonC);
+			clearButtons();
+			aPlayer.forceStop();
+			http.end();
+			WiFi.disconnect(); //Don't waste battery with always on wifi 
+			return;
+		}
+	}
+	else {
+		//Create the GET request string
+		//http://jadempage.servegame.org/api/submit?name=bob&score=64&gID=1&geo=GB
+		http.begin(getStr);
+		int httpCode = http.GET();                                        //Make the request
+
+		if (httpCode > 0) { //Check for the returning code
+
+			String payload = http.getString();
+			Serial.println(httpCode);
+			Serial.println(payload);
+		}
+		else {
+			String payload = http.getString();
+			Serial.println(httpCode);
+			Serial.println(payload);
+			httpFail = true; 
+		}
+	}
+	if (httpFail) {
+		while (!btnCPress) {
 			tft.setTextSize(3);
 			tft.drawString("Failed To Post Score :( ", 60, 30);
 			tft.drawString("Ok", 250, 210);
 		}
 	}
 	else {
-		//Create the GET request string
-		//http://jadempage.servegame.org/api/submit?name=bob&score=64&gID=1&geo=GB
+		while (!btnCPress) {
+			tft.setTextSize(3);
+			tft.drawString("Posted! ", 60, 30);
+			tft.drawString("Ok", 250, 210);
+		}
 	}
+
+	if (btnCPress) {
+		aPlayer.playSound(scButtonC);
+		clearButtons();
+		aPlayer.forceStop();
+		http.end();
+		WiFi.disconnect(); //Don't waste battery with always on wifi 
+		return;
+	}
+	http.end();
+	WiFi.disconnect(); //Don't waste battery with always on wifi 
 }
 
 //bool gamePlay::inRange(int low, int high, int x)
