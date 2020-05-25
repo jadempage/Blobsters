@@ -1,11 +1,10 @@
 #include "audio.h"
 
-
-
 AudioGeneratorWAV* wav;
 AudioFileSourcePROGMEM* file;
 AudioOutputI2S* out;
 
+// Play sound, sc is an enum of possible sounds, all found in audio.h
 void audio::playSound(soundContext sc) {
 
 	switch (sc) {
@@ -20,20 +19,20 @@ void audio::playSound(soundContext sc) {
 		case scBombExplode: file = new AudioFileSourcePROGMEM(se_BombExplode, sizeof(se_BombExplode)); break;
 		case scAppleCatch: file = new AudioFileSourcePROGMEM(se_AppleCatch,  sizeof(se_AppleCatch)); break;
 	}
-	/*file = new AudioFileSourcePROGMEM(af_btnPress, sizeof(af_btnPress));*/
+	//switch what sound we want
 	out = new AudioOutputI2S(0, 1); // Output to builtInDAC
 	out->SetOutputModeMono(true);
 	wav = new AudioGeneratorWAV();
 	wav->begin(file, out);
 	wavloop(); 
-	}
+	//play the sound
+}
 
 void audio::wavloop()
 {
 		if (!wav) {
 			return;
 		}
-		//Serial.write(audioRunning);
 		if (wav->isRunning()) {
 			if (!wav->loop()) {
 				wav->stop();
@@ -43,12 +42,9 @@ void audio::wavloop()
 				wav = NULL;
 			}
 		}
-		//else {
-		//	delay(1000);
 }
 
 void audio::forceStop() {
-	//Serial.write(audioRunning);
 	if (!wav) {
 		return;
 	}
@@ -59,6 +55,7 @@ void audio::forceStop() {
 		if (out) { delete out; }
 		wav = NULL; 
 	}
+	//Try to force the sound to stop if it is playing
 }
 	
 void audio::waitForFinish() {

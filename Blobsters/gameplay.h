@@ -35,7 +35,6 @@ struct Inventory;
 
 class gamePlay {
 public:
-
 	bool m_shouldContinue = true;
 	void idleLoop(Inventory* curInventory);
 	void setUp();

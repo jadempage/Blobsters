@@ -1,7 +1,3 @@
-// 
-// 
-// 
-
 #include "minigameHelper.h"
 #include "gameplay.h"
 
@@ -11,6 +7,7 @@
 #define SCREEN_WIDTH 320	//window height
 #define SCREEN_HEIGHT 240	//window width
 
+//Generate a whole card deck for the HILO game
 std::vector<singleCard> game_HiLo::generateVDeck() {
 	static std::vector<singleCard> newDeck;
 	int deckCount = 0;
@@ -19,15 +16,14 @@ std::vector<singleCard> game_HiLo::generateVDeck() {
 			singleCard thisCard;
 			thisCard.theSuit = cardSuits(i);
 			thisCard.theVal = cardVals(j);
-			//memcpy(&thisDeck[deckCount], &thisCard, sizeof(thisCard));
 			newDeck.push_back(thisCard);
 			deckCount++;
-			//DUMP(deckCount);
 		}
 	}
 	return newDeck;
 }
 
+//Return if the value of the next card is higher
 bool game_HiLo::isHigher(singleCard* cardNow, singleCard* cardNext) {
 	int val1 = 0;
 	int val2 = 0;
@@ -63,6 +59,7 @@ bool game_HiLo::isHigher(singleCard* cardNow, singleCard* cardNext) {
 	}
 }
 
+//Remove the card from the deck
 singleCard* game_HiLo::removeCard(int index, singleCard* theArr, int cardsLeft) {
 	for (int i = index; i <= cardsLeft - 1; i++)
 	{
@@ -72,6 +69,7 @@ singleCard* game_HiLo::removeCard(int index, singleCard* theArr, int cardsLeft) 
 	return theArr; 
 }
 
+//Check for a collision between the ball and the paddle
 int game_Pong::check_collision(ball a, paddle b)
 {
 	//Adapted from https://github.com/flightcrank/pong/blob/master/pong.c
@@ -110,6 +108,7 @@ int game_Pong::check_collision(ball a, paddle b)
 	return 1;
 }
 
+//Check if the pointer on the compass intersects the treasure
 int game_Treasure::lines_intersect(/* First line segment */  long x1, long y1, long x2, long y2, /* Second line segment */ long x3, long y3, long x4, long y4)
 //AUTHOR: Mukesh Prasad
 	{
@@ -206,6 +205,7 @@ int game_Treasure::lines_intersect(/* First line segment */  long x1, long y1, l
 	return (1);
 } /* lines_intersect */
 
+//Creates a bounding box for the treasure items
 boundingBox game_Treasure::getBoundingBox(int x, int y)
 {
 	boundingBox theBox;
@@ -237,6 +237,7 @@ boundingBox game_Treasure::getBoundingBox(int x, int y)
 	return theBox;
 }
 
+//Check if the bounding box of the treasure intersects the pointer
 bool game_Treasure::checkIntersection(int goalX, int goalY, boundingBox box)
 {
 	bool isInter = false;
@@ -257,6 +258,7 @@ bool game_Treasure::checkIntersection(int goalX, int goalY, boundingBox box)
 	return isInter;
 }
 
+//Generates a bomb at X, Y
 coords game_Treasure::getBomb(int tresX, int tresY) {
 	bool coordsOk = false;
 	coords curBomb;
@@ -292,6 +294,7 @@ coords game_Treasure::getBomb(int tresX, int tresY) {
 	}
 }
 
+//Returns a list of all the bombs
 std::vector<coords> game_Treasure::getBombHeadings(int noBombs, int tresX, int tresY)
 {
 	coords printBomb;
@@ -307,16 +310,13 @@ std::vector<coords> game_Treasure::getBombHeadings(int noBombs, int tresX, int t
 	return internalBombs;
 }
 
-//bool game_Treasure::inRange(int low, int high, int x)
-//{
-//	return ((x - high) * (x - low) <= 0);
-//}
-
+//Gets if a value is in range (used for helping with intersections)
 bool game_Treasure::valueInRange(int value, int min, int max)
 {
 	return (value >= min) && (value <= max);
 }
 
+//Checks rectangular overlaps
 bool game_Treasure::rectOverlap(coords A, coords B)
 {
 	int width = 20;
@@ -332,6 +332,7 @@ bool game_Treasure::rectOverlap(coords A, coords B)
 	return xOverlap && yOverlap;
 }
 
+//Generates a new apple item
 apple game_Fruit::generateApple()
 {
 	//Generate random Y between 0 and YMAX
@@ -352,11 +353,13 @@ apple game_Fruit::generateApple()
 	return newApple;
 }
 
+//Checks if a value is in range (to help with collisions)
 bool game_Fruit::valueInRange(int value, int min, int max)
 {
 	return (value >= min) && (value <= max);
 }
 
+//Checks the collision between the apple and the bat
 bool game_Fruit::appleCatch(int appleX, int appleY, int charX, int charY)
 {
 	int aWidth = 11;

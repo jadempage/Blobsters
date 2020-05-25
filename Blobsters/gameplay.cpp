@@ -18,16 +18,16 @@ const char* password = "jp765765";
 const char* userloc = "GB";
 /* To do:
 1) Handle fridge showing multiple pages
-2) Make fridge "Sold out" thing not look shit (Mostly fixed, still leftover "max size" errors and only first one gets new ico 
+2) Make fridge "Sold out" thing not look bad (Mostly fixed, still leftover "max size" errors and only first one gets new ico 
 3) Don't let player overfill inventory
 4) Have shop change on timer, not reset 
 5) Add shop stock to save
 6) Add age to save
 7) Save cal data 
 10) HiLo seems to give wrong answers
-11) HiLo noise is going nuts fr fr 
-12) Scan for networks? Inputting password would be a pita tho? 
-13) Add hatching and naming ffs
+11) HiLo noise doesn't work sometimes
+12) Scan for networks?
+13) Add hatching and naming 
 14) Add user location??? 
 
 MG Ideas:
@@ -35,7 +35,7 @@ MG Ideas:
 2) Pong - DONE
 3) Ball Maze (Gyro)
 4) Treasure Hunt (Magnetic sensor???) - Good Enough
-5) Fruit Catch - Mostly done
+5) Fruit Catch - done
 6) Coin Catch (Gyro) 
 7) "Guitar Hero"
 8) Jumpy Pet
@@ -53,7 +53,9 @@ bmm150_mag_data mag_max;
 bmm150_mag_data mag_min;
 struct bmm150_dev dev;
 Preferences prefs;
+//Set up sensors and wi-fi stuff
 
+//Main game loop - player movements until button is pressed
 void gamePlay::idleLoop(Inventory* curInventory)
 {
 	m_shouldContinue = true;
@@ -117,21 +119,24 @@ void gamePlay::idleLoop(Inventory* curInventory)
 	}
 }
 
+//Checks bounds
 template <typename T>
 bool IsInBounds(const T& value, const T& low, const T& high) {
 	return !(value < low) && !(high < value);
 }
 
+//Sets up default game values
 void gamePlay::setUp() {
 	tft.init();
 	tft.setRotation(1);
 	//Only run this once!
 	strcpy(cChar.colour, "Blue");
-	strcpy(cChar.name, "Thingy");
+	strcpy(cChar.name, "Bob");
 	cChar.fullness = 10;
 	cChar.happiness = 10;
 }
 
+//Randomly generates shop stock
 void gamePlay::genShopItems() {
 	foodItem thisFoodItem;
 	food curFoods;
@@ -141,6 +146,7 @@ void gamePlay::genShopItems() {
 	}
 }
 
+//Shop interface
 void gamePlay::showShop(Inventory* curInventory) {
 	food curFoods;
 	int curSlot = 0; 
@@ -228,6 +234,7 @@ void gamePlay::showShop(Inventory* curInventory) {
 	}
 }
 
+//Stats interface
 void gamePlay::showStats(Inventory* curInventory) {
 	m5.Lcd.drawPngFile(SD, "/bg/summ.png", 0, 0);
 	char str[2];
@@ -270,6 +277,7 @@ void gamePlay::showStats(Inventory* curInventory) {
 	}
 }
  
+//Shows map
 void gamePlay::showMap(Inventory* curInventory) {
    int curPos = 0;
    int textX = 16;
@@ -321,6 +329,7 @@ void gamePlay::showMap(Inventory* curInventory) {
 	}
 }
 
+//Shows list of games
 int gamePlay::gameBoard() {
 	int curPos = 0;
 	int curWinnings; 
@@ -395,6 +404,7 @@ int gamePlay::gameBoard() {
 	}
 }
 
+//Show inventory screen
 void gamePlay::showInventory(Inventory* curInventory)
 {
 	//@TO DO: actually add error to shop when fridge full 
@@ -440,6 +450,7 @@ void gamePlay::showInventory(Inventory* curInventory)
 	}
 }
 
+//Show fridge
 void gamePlay::showFridge(Inventory* curInventory) {
 	//TO DO Handle page switching, replace "sold out" with eaten, reshuffle food when exiting fridge (or now?) 
 	int itemSize = curInventory->numOfFoods;
@@ -532,12 +543,14 @@ void gamePlay::showFridge(Inventory* curInventory) {
 	}
 }
 
+//Clears buttons to make sure none were pressed erronorously
 void gamePlay::clearButtons() {
 	btnAPress = false;
 	btnBPress = false;
 	btnCPress = false; 
 }
 
+//Retiles when a sprite moves
 //Params: x/yMin = minimum x/y, x/yMax = max x/y Pos, tile = tile sprite, x/ypos mod = x/y of where sprite is, x/yMod = how big the thing to cover is 
 void gamePlay::refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int yPosMod, const short unsigned int* tile, int xMod, int yMod) {
 	for (int x = xMin; x < xMax; x = x + 16) {
@@ -553,6 +566,7 @@ void gamePlay::refloor(int xMin, int yMin, int xMax, int yMax, int xPosMod, int 
 	}
 }
 
+//Is run when the timer hits an interrupt
 void gamePlay::interruptTimer()
 {
 	//This will do for now, may want more complicated food thingy eventually, esp as we need to use this timer
@@ -563,6 +577,7 @@ void gamePlay::interruptTimer()
 	saveInterrupts++; 
 }
 
+//Handles hunger, fun and game save
 void gamePlay::timerHandler(Inventory* curInventory) {
 	//Each count of interrupt means 10 minutes has passed, so can change timers for gameplay feel based on that
 	//TO DO: Implement death 
@@ -592,21 +607,25 @@ void gamePlay::timerHandler(Inventory* curInventory) {
 	}
 }
 
+//Sets the A Button as pressed
 void gamePlay::interruptAbtn()
 {
 	btnAPress = true;
 }
 
+//Sets the B Button as pressed
 void gamePlay::interruptBbtn()
 {
 	btnBPress = true; 
 }
 
+//Sets the C Button as pressed
 void gamePlay::interruptCbtn()
 {
 	btnCPress = true; 
 }
 
+//Saves the games data
 void gamePlay::saveGameData(Inventory* curInventory) {
 	//TO DO: FIX SAVING FOOD ID 0 TO FILE ?!?!?!
 	File sfile = SD.open("/save.txt", FILE_WRITE);
@@ -648,6 +667,7 @@ void gamePlay::saveGameData(Inventory* curInventory) {
 	}
  }
 
+//Loads the games data
 void gamePlay::loadGameData(Inventory* curInventory) {
 	String sFileString;
 	char* resStr; 
@@ -733,12 +753,14 @@ void gamePlay::loadGameData(Inventory* curInventory) {
 	curInventory->numOfFoods = numFood; 
 	}
 
+//Removes character at X, for cleaning up text 
 void gamePlay::removeChar(char* str, unsigned int index) {
 	char* src;
 	for (src = str + index; *src != '\0'; *src = *(src + 1), ++src);
 	*src = '\0';
 }
 
+//Locates an element in the file
 char* gamePlay::findInFile(String toFind, String fString) {
 	// If string not empty Find where the required string starts For all chars in string If the cur char is not *
 	// Add it to temp string, increment strI so next valid char goes in next slot 
@@ -770,6 +792,7 @@ char* gamePlay::findInFile(String toFind, String fString) {
 	return ch;
 }
 
+//Play the hilo game
 int gamePlay::game_highlow() {
 	bool isBlink = false; 
 	int cardsLeft = 52; 
@@ -790,12 +813,10 @@ int gamePlay::game_highlow() {
 	std::vector<singleCard> thisDeck = ng_HiLo.generateVDeck();
 	bool isHigher = false; 
 	bool waitForChoice = false; 
-
+	//Starting params
 	ng_HiLo.curWinnings = 0;
 	ng_HiLo.roundsPlayed = 0;
 	while (!btnCPress) {
-
-
 		Serial.write("Doing next round \n"); 
 		isAce = false;
 		DUMP(ng_HiLo.roundsPlayed); 
@@ -804,25 +825,22 @@ int gamePlay::game_highlow() {
 			curCard = thisDeck.at(rando);
 			thisDeck.erase(thisDeck.begin() + (rando));
 			cardsLeft--;
+			//Draw a random card
 		}
 		else {
-			Serial.write("Cur card become next card \n"); 
+			//Cur card becomes next card
 			curCard = nextCard;
 		}
 		if (ng_HiLo.roundsPlayed >= 50) {
-			//Holi crap they cleared the whole deck 
+			//what do if whole deck cleared? 
 		}
-		Serial.write(cardsLeft);
-		Serial.write("\n");
-
 		int rando = (rand() % cardsLeft) + 1;
 		nextCard = thisDeck.at(rando);
 		thisDeck.erase(thisDeck.begin() + (rando));
 		cardsLeft--;
+		//Randomly get next card
 		tft.fillRect(card1x, cardy, cardw, cardh, TFT_WHITE);
 		tft.fillRect(card2x, cardy, cardw, cardh, TFT_WHITE);
-		DUMP(curCard.theSuit);
-		DUMP(curCard.theVal);
 		switch (curCard.theSuit) {
 		case csHearts: memcpy(toDraw, symb_heart, sizeof(symb_heart)); break;
 			case csClubs: memcpy(toDraw, symb_club, sizeof(symb_club)); break; 
@@ -866,6 +884,7 @@ int gamePlay::game_highlow() {
 		itoa(ng_HiLo.curWinnings, winChar, 10);
 		tft.setTextColor(TFT_BLACK, 0x92A7);
 		tft.drawString(winChar, 150, 20);
+		//Drawing stuff
 		if (curCard.theVal == cvAce) {
 			isAce == true;
 		}
@@ -874,9 +893,8 @@ int gamePlay::game_highlow() {
 		}
 		isHigher = ng_HiLo.isHigher(&curCard, &nextCard);
 		waitForChoice = true;
+		//Animate the char for some flavour
 		while (waitForChoice) {
-			//m5.update();
-			//aPlayer.wavloop(); 
 			if (isBlink) {
 				tft.pushImage(130, 120, 64, 64, blue_front, 0xFFFF);
 				isBlink = false;
@@ -921,7 +939,7 @@ int gamePlay::game_highlow() {
 						delay(1000);
 					}
 					else {
-						//Loser!!!!
+						//Loser
 						aPlayer.playSound(scLoseGame);
 						Serial.write("Loser \n");
 						clearButtons();
@@ -939,8 +957,6 @@ int gamePlay::game_highlow() {
 						aPlayer.playSound(scLoseGame);
 						Serial.write("User lose \n");
 						clearButtons();
-						//Loser!!!!
-						//Do sad music
 						delay(2000);
 						gameOverScreen(ng_HiLo.curWinnings, 2, false); 
 						return ng_HiLo.curWinnings;
@@ -958,24 +974,24 @@ int gamePlay::game_highlow() {
 		delay(500);
 	}
 	ng_HiLo.roundsPlayed++; 
-	Serial.write("Next round"); 
 	aPlayer.playSound(scDrawCard);
 	aPlayer.waitForFinish();
 	m5.update();
 	aPlayer.wavloop();
 	}
 	if (btnCPress) {
+		//End game early
 		aPlayer.playSound(scButtonC);
 		clearButtons();
 		delay(200);
 		aPlayer.forceStop();
 		return ng_HiLo.curWinnings;
 	}
-	//aPlayer.forceStop();
-	//return newGame.curWinnings;
 }
 
+//Play pong
 int gamePlay::game_pong() {
+	//Set up vars
 	game_Pong ng_Pong;
 	int playerScore = 0;
 	char PlayerScoreCh[2]; 
@@ -1013,6 +1029,7 @@ int gamePlay::game_pong() {
 	unsigned long lastAIMove = millis();
 	unsigned long timeNow = 0; 
 
+	//Draw stuff
 	tft.fillScreen(TFT_WHITE);
 
 	tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, TFT_BLACK);
@@ -1042,7 +1059,6 @@ int gamePlay::game_pong() {
 		sprintf(PlayerScoreCh, "%d", playerScore);
 		tft.drawString(PlayerScoreCh, 72, 10);
 		tft.fillCircle(theBall.x, theBall.y, theBall.w, TFT_WHITE);
-		//beep, beep, beep, beeeep
 		//Handle ball movement
 		theBall.x += theBall.dx;
 		theBall.y += theBall.dy;
@@ -1181,7 +1197,6 @@ int gamePlay::game_pong() {
 					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
 				}
 				else {
-					/*tft.fillRect(paddleAI.x, (paddleAI.y + paddleAI.h), paddleAI.w, 5, TFT_WHITE);*/
 					tft.fillRect(paddleAI.x, paddleAI.y + paddleAI.h - 10, paddleAI.w, 10, WHITE);
 					paddleAI.y -= 10;
 					tft.fillRect(paddleAI.x, paddleAI.y, paddleAI.w, paddleAI.h, BLACK);
@@ -1471,7 +1486,9 @@ float getBMM150Data()
 
 //End of ugliness
 
+//Play the treasure game
 int gamePlay::game_treasure(){
+	//Init vars
 	game_Treasure ng_Treasure;
 	bool isIntersecting; 
 	boundingBox treasureBounds;
@@ -1493,6 +1510,7 @@ int gamePlay::game_treasure(){
 	int playerScore = 0;
 	int curLevel = 1;
 
+	//Draw stuff
 	tft.fillScreen(TFT_WHITE);
 	tft.setTextSize(2);
 	tft.setTextColor(BLACK, WHITE); 
@@ -1511,6 +1529,7 @@ int gamePlay::game_treasure(){
 				tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
 				tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
 				m5.update();
+				//Generate goals and bombs
 				goalX = (rand() % 100) + 1;// +radius;
 				goalY = (rand() % 100) + 1;// +radius;
 				goalX += radius;
@@ -1523,13 +1542,11 @@ int gamePlay::game_treasure(){
 
 				for (int i = 0; i < curLevel; i++) {
 					int xCord = bombHeadings[i].x;
-					DUMP(xCord);
 					int yCord = bombHeadings[i].y;
-					DUMP(yCord); 
 					tft.setSwapBytes(true);
 					tft.pushImage(xCord, yCord, 17, 17, bomb, transparent);
 				}
-
+				//Draw stuff
 				tft.setTextColor(ORANGE, TFT_WHITE);
 				tft.drawString("3", 0, 0);
 				delay(1000);
@@ -1562,11 +1579,11 @@ int gamePlay::game_treasure(){
 			tft.drawLine(160, 20, 160, 220, TFT_GREEN); //X Same, Y Change (<>)
 			tft.drawLine(60, 120, 260, 120, TFT_GREEN); //Y Same, X Change (^v)
 			if (btnAPress) {
+				//Player guess, check intersections
 				aPlayer.wavloop();
 				m5.update();
 				clearButtons(); 
 				isIntersecting = ng_Treasure.checkIntersection(curX, curY, treasureBounds);
-				DUMP(isIntersecting); 
 				if (isIntersecting == true) {
 					aPlayer.playSound(scWinGame);
 					m5.update();
@@ -1587,10 +1604,8 @@ int gamePlay::game_treasure(){
 						aPlayer.wavloop(); 
 						m5.update();
 						bool gameOver = false;
-						Serial.printf("Checking %d \n", i); 
 						boundingBox bombBounds = ng_Treasure.getBoundingBox(bombHeadings[i].x, bombHeadings[i].y);
 						isIntersecting = ng_Treasure.checkIntersection(curX, curY, bombBounds);
-						DUMP(isIntersecting);
 						if (isIntersecting == true) {
 							aPlayer.playSound(scBombExplode);
 							m5.update();
@@ -1624,7 +1639,9 @@ int gamePlay::game_treasure(){
 		return 0;
 	}
 
+//Play fruit catch
 int gamePlay::game_fruit() {
+	//Init vars
 	m5.update();
 	aPlayer.wavloop();
 	char bugIntStr[10];
@@ -1665,29 +1682,24 @@ int gamePlay::game_fruit() {
 		//if (appleList.size() > 4) {
 		//	newAppleChance = 0;
 		//}
-		DUMP(newAppleChance);
 		if (newAppleChance == 3) {
-			Serial.printf("Generating new apple \n");
+			//Gen new apple
 			apple newApple = ngFruit.generateApple();
 			appleList.push_back(newApple);
 			applesFallen++;
 			if (newApple.isGold) {
 				tft.fillCircle(newApple.x, newApple.y, 11, TFT_YELLOW);
-				//tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_gold, transparent);
 			}
 			else {
 				tft.fillCircle(newApple.x, newApple.y, 11, TFT_RED);
-				/*	tft.pushImage(thisApple.x, thisApple.y, 22, 22, apple_reg, transparent);*/
 			}
 		}
 
 		xAcc = getAccel('X');
 		if (playerX > maxRight) {
-			//redrawSprite = true;
 			playerX = maxRight;
 		}
 		if (playerX < minLeft) {
-			//	redrawSprite = true;
 			playerX = minLeft;
 		}
 		if (abs(xAcc) > 70)
@@ -1703,6 +1715,7 @@ int gamePlay::game_fruit() {
 			}
 		}
 		tft.startWrite();
+		//Draw stuff, trying to paint apple different colours for if sky or ground is slightly tricky 
 		for (int i = 0; i < appleList.size(); i++) {
 			m5.update();
 			aPlayer.wavloop();
@@ -1765,7 +1778,6 @@ int gamePlay::game_fruit() {
 					tft.fillRect(playerX, playerY, catchW, catchH, TFT_BLACK);
 					stepLeft = false; 
 				}
-			/*	tft.fillRect(playerX, playerY, 50, 20, TFT_BLACK);*/
 				redrawSprite = false;
 			}
 			m5.update();
@@ -1796,8 +1808,7 @@ int gamePlay::game_fruit() {
 	return 0;
 }
 
-	
-	
+//Display game over screen
 void gamePlay::gameOverScreen(int winnings, int gameID, bool didWin) {
 	aPlayer.forceStop();
 	m5.update();
@@ -1842,6 +1853,7 @@ void gamePlay::gameOverScreen(int winnings, int gameID, bool didWin) {
 }
 
 void gamePlay::postScore(int gameID, int score) {
+	//Set up params
 	WiFi.begin(ssid, password);
 	int connectionAttempts = 0;
 	bool didFail = false;
@@ -1852,7 +1864,7 @@ void gamePlay::postScore(int gameID, int score) {
 	char getStr[100];
 	tft.fillScreen(TFT_WHITE);
 	tft.setTextColor(TFT_BLACK, TFT_WHITE);
-
+	//Generate the URL 
 	sprintf(getStr, "http://jadempage.servegame.org:17777/api/submit?name=%s&score=%d&gID=%d&geo=%s", cChar.name, score, gameID, userloc);
 	DUMP(getStr);
 	while (WiFi.status() != WL_CONNECTED && didFail == false) {
@@ -1926,8 +1938,3 @@ void gamePlay::postScore(int gameID, int score) {
 	http.end();
 	WiFi.disconnect(); //Don't waste battery with always on wifi 
 }
-
-//bool gamePlay::inRange(int low, int high, int x)
-//{
-//	return ((x - high) * (x - low) <= 0);
-//}
